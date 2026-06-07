@@ -8,4 +8,5 @@ import SwiftUI
 enum AppColors {
     static let background = Color(.systemBackground)
     static let secondaryBackground = Color(.secondarySystemBackground)
+    static let accent = Color("AccentColor")
 }

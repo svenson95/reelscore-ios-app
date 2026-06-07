@@ -9,7 +9,7 @@ import SwiftUI
 struct RealscoreApp: App {
     var body: some Scene {
         WindowGroup {
-            MainView()
+            MainView().tint(AppColors.accent)
         }
     }
 }
