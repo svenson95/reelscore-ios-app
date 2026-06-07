@@ -7,7 +7,7 @@ import SwiftUI
 
 struct OverviewView: View {
     @StateObject private var viewModel = OverviewViewModel()
-    
+
     @State private var selectedDayIndex = 1
     @State private var didSelectInitialDay = false
     @State private var isSwitchingWeek = false
@@ -15,7 +15,10 @@ struct OverviewView: View {
     var body: some View {
         VStack(spacing: 0) {
             if !viewModel.weekDates.isEmpty {
-                weekdayPicker
+                OverviewWeekdayPickerView(
+                    items: weekdayPickerItems,
+                    selectedDayIndex: $selectedDayIndex
+                )
             }
 
             TabView(selection: $selectedDayIndex) {
@@ -45,155 +48,63 @@ struct OverviewView: View {
             await viewModel.loadOverview()
         }
         .onChange(of: viewModel.weekDates.count) { _, count in
-            guard count > 0 else { return }
-            guard !didSelectInitialDay else { return }
-
-            let todayIndex = viewModel.todayWeekdayIndex + 1
-
-            if count > todayIndex {
-                selectedDayIndex = todayIndex
-            } else {
-                selectedDayIndex = 1
-            }
-
-            didSelectInitialDay = true
+            selectInitialDayIfNeeded(weekDateCount: count)
         }
     }
 
-    private var weekdayPicker: some View {
-        HStack(spacing: 4) {
-            ForEach(visibleWeekdayIndices, id: \.self) { index in
-                let day = viewModel.dayItem(for: index)
-
-                Button {
-                    selectedDayIndex = index
-                } label: {
-                    VStack(spacing: 3) {
-                        Text(day.weekdayLabel)
-                            .font(.caption2)
-                            .fontWeight(.semibold)
-                            .lineLimit(1)
-
-                        Text(day.dayLabel)
-                            .font(.caption2)
-                            .lineLimit(1)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 8)
-                    .background(
-                        selectedDayIndex == index
-                        ? Color.accentColor.opacity(0.18)
-                        : Color.clear
-                    )
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
-                }
-                .buttonStyle(.plain)
-            }
-        }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 8)
-        .background(.bar)
-    }
-
-    @ViewBuilder
     private func fixturesList(for dayIndex: Int) -> some View {
         let fixtures = viewModel.fixturesForDay(at: dayIndex)
-        let groupedFixtures = groupedFixtures(fixtures)
 
-        List {
-            if let errorMessage = viewModel.errorMessage {
-                ErrorView(message: errorMessage) {
-                    Task {
-                        await viewModel.loadOverview()
-                    }
-                }
+        return OverviewFixturesListView(
+            fixtures: fixtures,
+            groupedFixtures: fixtures.groupedByCompetitionAndRound(),
+            errorMessage: viewModel.errorMessage,
+            isLoading: viewModel.isLoading,
+            didLoadInitialData: viewModel.didLoadInitialData,
+            onRetry: {
+                await viewModel.loadOverview()
+            },
+            onRefresh: {
+                await viewModel.loadOverview()
             }
-
-            if fixtures.isEmpty && !viewModel.isLoading && viewModel.didLoadInitialData {
-                EmptyStateView(
-                    title: "Keine Spiele",
-                    systemImage: "calendar"
-                )
-            }
-
-            ForEach(groupedFixtures) { group in
-                Section {
-                    ForEach(group.fixtures) { fixture in
-                        NavigationLink {
-                            MatchView(fixture: fixture)
-                        } label: {
-                            FixtureRowView(fixture: fixture)
-                        }
-                    }
-                } header: {
-                    FixtureSectionHeaderView(group: group)
-                }
-            }
-        }
-        .refreshable {
-            await viewModel.loadOverview()
-        }
-    }
-    
-    struct FixtureSectionHeaderView: View {
-        let group: FixtureSectionGroup
-
-        var body: some View {
-            HStack(spacing: 12) {
-                if let logo = group.competitionLogo,
-                   let url = URL(string: logo) {
-                    AsyncImage(url: url) { image in
-                        image
-                            .resizable()
-                            .scaledToFit()
-                    } placeholder: {
-                        Color.clear
-                    }
-                    .frame(width: 24, height: 24)
-                }
-
-                Text(group.competition)
-                    .font(.default)
-                    .fontWeight(.semibold)
-                    .lineLimit(1)
-
-                Spacer()
-
-                Text(group.round)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-            }
-            .textCase(nil)
-        }
+        )
     }
 
-    private func groupedFixtures(_ fixtures: [Fixture]) -> [FixtureSectionGroup] {
-        let groups = Dictionary(grouping: fixtures) { fixture in
-            FixtureGroupKey(
-                competition: fixture.league.name,
-                round: fixture.league.round ?? "-"
+    private var weekdayPickerItems: [OverviewWeekdayPickerItem] {
+        visibleWeekdayIndices.map { index in
+            let day = viewModel.dayItem(for: index)
+
+            return OverviewWeekdayPickerItem(
+                index: index,
+                weekdayLabel: day.weekdayLabel,
+                dayLabel: day.dayLabel
             )
         }
-
-        return groups
-            .map { key, fixtures in
-                FixtureSectionGroup(
-                    competition: key.competition,
-                    competitionLogo: fixtures.first?.league.logo,
-                    round: key.round,
-                    fixtures: fixtures
-                )
-            }
-            .sorted {
-                if $0.competition == $1.competition {
-                    return $0.round < $1.round
-                }
-
-                return $0.competition < $1.competition
-            }
     }
-    
+
+    private var visibleWeekdayIndices: [Int] {
+        guard viewModel.weekDates.count >= 9 else {
+            return Array(viewModel.weekDates.indices)
+        }
+
+        return Array(1...(viewModel.weekDates.count - 2))
+    }
+
+    private func selectInitialDayIfNeeded(weekDateCount count: Int) {
+        guard count > 0 else { return }
+        guard !didSelectInitialDay else { return }
+
+        let todayIndex = viewModel.todayWeekdayIndex + 1
+
+        if count > todayIndex {
+            selectedDayIndex = todayIndex
+        } else {
+            selectedDayIndex = 1
+        }
+
+        didSelectInitialDay = true
+    }
+
     private func handleSelectedDayIndexChange(_ index: Int) async {
         guard !isSwitchingWeek else { return }
         guard viewModel.weekDates.count >= 9 else { return }
@@ -202,33 +113,27 @@ struct OverviewView: View {
         let nextMondayIndex = viewModel.weekDates.count - 1
 
         if index == previousSundayIndex {
-            isSwitchingWeek = true
-
-            await viewModel.loadPreviousWeek()
-
-            // Neue Woche mit Edge-Days:
-            // index 7 = Sonntag der sichtbaren Arbeitswoche
-            selectedDayIndex = 7
-
-            isSwitchingWeek = false
+            await switchToPreviousWeek()
         } else if index == nextMondayIndex {
-            isSwitchingWeek = true
-
-            await viewModel.loadNextWeek()
-
-            // Neue Woche:
-            // index 1 = Montag
-            selectedDayIndex = 1
-
-            isSwitchingWeek = false
+            await switchToNextWeek()
         }
     }
-    
-    private var visibleWeekdayIndices: [Int] {
-        guard viewModel.weekDates.count >= 9 else {
-            return Array(viewModel.weekDates.indices)
-        }
 
-        return Array(1...(viewModel.weekDates.count - 2))
+    private func switchToPreviousWeek() async {
+        isSwitchingWeek = true
+
+        await viewModel.loadPreviousWeek()
+        selectedDayIndex = 7
+
+        isSwitchingWeek = false
+    }
+
+    private func switchToNextWeek() async {
+        isSwitchingWeek = true
+
+        await viewModel.loadNextWeek()
+        selectedDayIndex = 1
+
+        isSwitchingWeek = false
     }
 }
