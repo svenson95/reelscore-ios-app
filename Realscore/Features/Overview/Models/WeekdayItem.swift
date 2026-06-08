@@ -14,6 +14,6 @@ struct WeekdayItem: Identifiable {
     }
 
     var dayLabel: String {
-        date.dayString
+        date.dayMonthString
     }
 }

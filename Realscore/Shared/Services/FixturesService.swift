@@ -36,9 +36,6 @@ final class FixturesService {
             }
         }
 
-        print("Fixtures raw response:")
-        print(String(data: data, encoding: .utf8) ?? "-")
-
         return try JSONDecoder().decode([[Fixture]].self, from: data)
     }
 }

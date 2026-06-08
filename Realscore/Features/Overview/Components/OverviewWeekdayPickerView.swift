@@ -10,11 +10,8 @@ struct OverviewWeekdayPickerView: View {
 
     @Binding var selectedDayIndex: Int
 
-    private let firstRealDayIndex = 1
-
-    private var lastRealDayIndex: Int {
-        max(weekDates.count - 2, 0)
-    }
+    private let firstRealDayIndex = Constants.firstRealWeekdayIndex
+    private let lastRealDayIndex = Constants.lastRealWeekdayIndex
 
     var body: some View {
         HStack(spacing: 4) {
