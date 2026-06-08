@@ -8,6 +8,7 @@ import SwiftUI
 struct OverviewFixturesListView: View {
     let fixtures: [Fixture]
     let groupedFixtures: [FixtureSectionGroup]
+
     let errorMessage: String?
     let isLoading: Bool
     let didLoadInitialData: Bool

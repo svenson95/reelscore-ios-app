@@ -61,7 +61,7 @@ struct OverviewWeekdayPickerView: View {
 
     private func backgroundColor(for item: OverviewWeekdayPickerItem) -> Color {
         selectedDayIndex == item.index
-            ? Color.accentColor.opacity(0.18)
+            ? Color.gray.opacity(0.1)
             : Color.clear
     }
 }
@@ -75,10 +75,10 @@ private struct OverviewWeekdayPickerItem: Identifiable {
     }
 
     var weekdayLabel: String {
-        date.formatted(.dateTime.weekday(.abbreviated))
+        date.weekdayString
     }
 
     var dayLabel: String {
-        date.formatted(.dateTime.day())
+        date.dayMonthString
     }
 }

@@ -15,13 +15,14 @@ extension Date {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "de_DE")
         formatter.dateFormat = "E"
-        return formatter.string(from: self)
+        let value = formatter.string(from: self)
+        return value.hasSuffix(".") ? String(value.dropLast()) : value
     }
 
     var dayMonthString: String {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "de_DE")
-        formatter.dateFormat = "dd.MM."
+        formatter.dateFormat = "dd.MM"
         return formatter.string(from: self)
     }
     

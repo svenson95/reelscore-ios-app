@@ -23,7 +23,7 @@ struct FixtureRowView: View {
             Text(timeText)
                 .font(.caption)
                 .fontWeight(status.isPlaying ? .semibold : .regular)
-                .foregroundStyle(status.isEnded ? Color.secondary : Color.primary)
+                .foregroundStyle(timeTextColor)
                 .strikethrough(shouldStrikeThroughTime)
                 .monospacedDigit()
                 .frame(width: 42, alignment: .center)
@@ -32,7 +32,7 @@ struct FixtureRowView: View {
                 .background {
                     if status.isPlaying {
                         RoundedRectangle(cornerRadius: ROUNDED_BORDERS)
-                            .fill(.green.tertiary)
+                            .fill(.green)
                     }
                     
                     if status.isScheduled {
@@ -140,6 +140,18 @@ struct FixtureRowView: View {
         }
 
         return formattedKickoffTime
+    }
+    
+    private var timeTextColor: Color {
+        if status.isPlaying {
+            return Color(.systemBackground)
+        }
+
+        if status.isEnded {
+            return .secondary
+        }
+
+        return .primary
     }
 
     private var shouldStrikeThroughTime: Bool {
