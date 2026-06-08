@@ -8,24 +8,40 @@ import UIKit
 
 struct FixtureRowView: View {
     let fixture: Fixture
+    
+    var status: FixtureStatusShort {
+        fixture.fixture.status.short
+    }
+    
+    private let GRAY_STATUS_COLOR = Color.gray.opacity(0.1)
+    private let STATUS_PADDING_HORIZONTAL = 2.0
+    private let STATUS_PADDING_VERTICAL = 4.0
+    private let ROUNDED_BORDERS = 6.0
 
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 8) {
             Text(timeText)
                 .font(.caption)
-                .fontWeight(isPlaying ? .semibold : .regular)
-                .foregroundStyle(isPlaying ? .white : .secondary)
+                .fontWeight(status.isPlaying ? .semibold : .regular)
+                .foregroundStyle(status.isEnded ? Color.secondary : Color.primary)
                 .strikethrough(shouldStrikeThroughTime)
+                .monospacedDigit()
                 .frame(width: 42, alignment: .center)
-                .padding(.vertical, 3)
+                .padding(.horizontal, STATUS_PADDING_HORIZONTAL)
+                .padding(.vertical, STATUS_PADDING_VERTICAL)
                 .background {
-                    if isPlaying {
-                        RoundedRectangle(cornerRadius: 6)
-                            .fill(.green)
+                    if status.isPlaying {
+                        RoundedRectangle(cornerRadius: ROUNDED_BORDERS)
+                            .fill(.green.tertiary)
+                    }
+                    
+                    if status.isScheduled {
+                        RoundedRectangle(cornerRadius: ROUNDED_BORDERS)
+                            .fill(GRAY_STATUS_COLOR)
                     }
                 }
 
-            HStack(spacing: 0) {
+            HStack(spacing: 8) {
                 teamView(
                     name: fixture.teams.home.name,
                     teamId: fixture.teams.home.id,
@@ -33,9 +49,18 @@ struct FixtureRowView: View {
                 )
 
                 Text(scoreText)
-                    .font(.headline)
+                    .font(.subheadline)
+                    .fontWeight(status.isPlaying ? .bold : .regular)
                     .monospacedDigit()
-                    .frame(minWidth: 44)
+                    .frame(minWidth: 28)
+                    .padding(.horizontal, STATUS_PADDING_HORIZONTAL)
+                    .padding(.vertical, STATUS_PADDING_VERTICAL)
+                    .background {
+                        if status.isFinished {
+                            RoundedRectangle(cornerRadius: ROUNDED_BORDERS)
+                                .fill(GRAY_STATUS_COLOR)
+                        }
+                    }
 
                 teamView(
                     name: fixture.teams.away.name,
@@ -71,42 +96,18 @@ struct FixtureRowView: View {
         .frame(maxWidth: .infinity)
     }
 
-    private func teamLogo(teamId: Int?) -> some View {
-        Group {
-            if let teamId,
-               UIImage(named: "team_\(teamId)") != nil {
-                Image("team_\(teamId)")
-                    .resizable()
-                    .scaledToFit()
-            } else {
-                Image(systemName: "shield")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-        }
-        .frame(width: 16, height: 16)
-    }
-
     private var scoreText: String {
-        let home = fixture.goals.home.map(String.init) ?? "-"
-        let away = fixture.goals.away.map(String.init) ?? "-"
+        if status.isCancelled || status.isAbandoned || status.isNotPlayed {
+            return "-"
+        }
+        
+        if status.isScheduled {
+            return "vs"
+        }
+
+        let home = fixture.goals.home.map(String.init) ?? "?"
+        let away = fixture.goals.away.map(String.init) ?? "?"
         return "\(home):\(away)"
-    }
-
-    private var isPenalty: Bool {
-        fixture.fixture.status.short == "PEN"
-    }
-
-    private var isHalftime: Bool {
-        fixture.fixture.status.short == "HT"
-    }
-
-    private var isPlaying: Bool {
-        ["1H", "2H", "ET", "BT", "P", "INT"].contains(fixture.fixture.status.short) || isHalftime || isPenalty
-    }
-
-    private var isFinished: Bool {
-        ["FT", "AET", "PEN"].contains(fixture.fixture.status.short)
     }
     
     private var isoDateFormatter: ISO8601DateFormatter {
@@ -119,19 +120,17 @@ struct FixtureRowView: View {
     }
     
     private var timeText: String {
-        let status = fixture.fixture.status.short
-
-        if isPenalty {
-            return "Elfm."
-        }
-
-        if isHalftime {
+        if status.isHalftime {
             return "HZ"
         }
 
-        if isPlaying {
+        if status.isPlaying {
             if status == "INT" {
                 return "Unt."
+            }
+            
+            if status == "P" {
+                return "Elfm."
             }
 
             let elapsed = fixture.fixture.status.elapsed ?? 0
@@ -144,7 +143,7 @@ struct FixtureRowView: View {
     }
 
     private var shouldStrikeThroughTime: Bool {
-        isFinished
+        return status.isEnded
     }
 
     private var formattedKickoffTime: String {
@@ -180,30 +179,5 @@ struct FixtureRowView: View {
         formatter.locale = Locale(identifier: "de_DE")
         formatter.timeZone = TimeZone(identifier: "Europe/Berlin")
         return formatter
-    }
-}
-
-struct TeamLogoView: View {
-    let teamId: Int?
-    let size: CGFloat
-
-    var body: some View {
-        Group {
-            if let teamId,
-               UIImage(named: assetName(for: teamId)) != nil {
-                Image(assetName(for: teamId))
-                    .resizable()
-                    .scaledToFit()
-            } else {
-                Image(systemName: "shield")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-        }
-        .frame(width: size, height: size)
-    }
-
-    private func assetName(for teamId: Int) -> String {
-        "team_\(teamId)"
     }
 }

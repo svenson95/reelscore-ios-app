@@ -23,6 +23,14 @@ struct MainView: View {
             } label: {
                 Label("Überblick", systemImage: "list.bullet")
             }
+            
+            Tab(value: MainTab.overview) {
+                NavigationStack {
+                    StandingsView()
+                }
+            } label: {
+                Label("Tabellen", systemImage: "tablecells")
+            }
 
             Tab(value: MainTab.competitions) {
                 NavigationStack {

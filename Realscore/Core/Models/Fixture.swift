@@ -5,8 +5,12 @@
 
 import Foundation
 
-typealias MongoDbId = String
-typealias TeamId = Int
+// MARK: - Typealiases
+
+public typealias MongoDbId = String
+typealias FixtureStatusShort = String
+
+// MARK: - Fixture
 
 struct Fixture: Identifiable, Codable, Hashable {
     let _id: MongoDbId?
@@ -127,7 +131,7 @@ struct FixtureVenue: Codable, Hashable {
 
 struct FixtureStatus: Codable, Hashable {
     let long: String
-    let short: String
+    let short: FixtureStatusShort
     let elapsed: Int?
     let extra: Int?
 }
@@ -218,4 +222,42 @@ enum AnalysisType: String, Codable, Hashable {
     case noRedCard = "NO_RED_CARD"
     case keyPlayerInjury = "KEY_PLAYER_INJURY"
     case keyPlayerYellowCardSuspension = "KEY_PLAYER_YELLOW_CARD_SUSPENSION"
+}
+
+extension FixtureStatusShort {
+    var isHalftime: Bool {
+        self == "HT"
+    }
+    
+    var isScheduled: Bool {
+        ["TBD", "NS"].contains(self)
+    }
+
+    var isPlaying: Bool {
+        ["1H", "2H", "ET", "BT", "P", "INT"].contains(self) || isHalftime
+    }
+
+    var isFinished: Bool {
+        ["FT", "AET", "PEN"].contains(self)
+    }
+    
+    var isCancelled: Bool {
+        self == "CANC"
+    }
+    
+    var isAbandoned: Bool {
+        self == "ABD"
+    }
+    
+    var isNotPlayed: Bool {
+        ["AWD", "WO"].contains(self)
+    }
+    
+    var isEnded: Bool {
+        isFinished || isCancelled || isAbandoned || isNotPlayed
+    }
+    
+    var isEndedWithoutPlaying: Bool {
+        isCancelled || isAbandoned || isNotPlayed
+    }
 }

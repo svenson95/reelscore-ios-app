@@ -16,7 +16,7 @@ final class OverviewViewModel: ObservableObject {
 
     private var currentWeekStart: Date
     private var didLoad = false
-    private var isChangingWeek = false
+    private var isLoadingWeek = false
 
     init() {
         currentWeekStart = Self.startOfWeek(for: Date())
@@ -46,7 +46,7 @@ final class OverviewViewModel: ObservableObject {
     }
 
     private func changeWeek(by days: Int) async -> Bool {
-        guard !isChangingWeek else {
+        guard !isLoadingWeek else {
             return false
         }
 
@@ -58,8 +58,8 @@ final class OverviewViewModel: ObservableObject {
             return false
         }
 
-        isChangingWeek = true
-        defer { isChangingWeek = false }
+        isLoadingWeek = true
+        defer { isLoadingWeek = false }
 
         return await loadWeek(startingAt: newWeekStart)
     }
@@ -67,6 +67,10 @@ final class OverviewViewModel: ObservableObject {
     @discardableResult
     private func loadWeek(startingAt weekStart: Date) async -> Bool {
         isLoading = true
+        defer {
+            isLoading = false
+            didLoadInitialData = true
+        }
         errorMessage = nil
 
         let requestedWeekStart = weekStart
@@ -74,11 +78,6 @@ final class OverviewViewModel: ObservableObject {
             from: requestedWeekStart,
             withEdgeDays: true
         )
-
-        defer {
-            isLoading = false
-            didLoadInitialData = true
-        }
 
         do {
             let fixtures = try await FixturesService().getWeekFixtures(

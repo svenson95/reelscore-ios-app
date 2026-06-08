@@ -5,8 +5,10 @@
 
 import Foundation
 
-struct Team: Identifiable, Codable, Hashable {
-    let id: Int
-    let name: String
-    let logo: String?
+public typealias TeamId = Int
+
+public struct Team: Identifiable, Codable, Hashable {
+    public let id: Int
+    public let name: String
+    public let logo: String?
 }
