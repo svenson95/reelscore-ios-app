@@ -19,6 +19,7 @@ extension Array where Element == Fixture {
                 FixtureSectionGroup(
                     competition: key.competition,
                     competitionLogo: fixtures.first?.league.logo,
+                    competitionId: fixtures.first?.league.id ?? -1,
                     round: key.round,
                     fixtures: fixtures
                 )

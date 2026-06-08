@@ -6,13 +6,14 @@
 import SwiftUI
 
 struct FixtureSectionHeaderView: View {
-    // Users/svenbrodny/Developer/Swift/Realscore/Realscore/Features/Overview/Components/FixtureSectionHeaderView.swift:9:16 'FixtureSectionGroup' is ambiguous for type lookup in this context
-
     let group: FixtureSectionGroup
 
     var body: some View {
         HStack(spacing: 12) {
-            competitionLogo
+            CompetitionLogoView(
+                competitionId: group.competitionId,
+                size: 14
+            )
 
             Text(group.competition)
                 .font(.default)
@@ -27,20 +28,5 @@ struct FixtureSectionHeaderView: View {
                 .lineLimit(1)
         }
         .textCase(nil)
-    }
-
-    @ViewBuilder
-    private var competitionLogo: some View {
-        if let logo = group.competitionLogo,
-           let url = URL(string: logo) {
-            AsyncImage(url: url) { image in
-                image
-                    .resizable()
-                    .scaledToFit()
-            } placeholder: {
-                Color.clear
-            }
-            .frame(width: 24, height: 24)
-        }
     }
 }

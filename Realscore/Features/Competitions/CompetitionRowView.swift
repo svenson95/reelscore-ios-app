@@ -10,8 +10,10 @@ struct CompetitionRowView: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            Image(systemName: "trophy")
-                .foregroundStyle(.secondary)
+            CompetitionLogoView(
+                competitionId: competition.id,
+                size: 14
+            )
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(competition.name)

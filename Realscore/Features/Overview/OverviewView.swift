@@ -11,12 +11,13 @@ struct OverviewView: View {
     @State private var selectedDayIndex = 1
     @State private var didSelectInitialDay = false
     @State private var isSwitchingWeek = false
+    @State private var isProgrammaticDaySelection = false
 
     var body: some View {
         VStack(spacing: 0) {
             if !viewModel.weekDates.isEmpty {
                 OverviewWeekdayPickerView(
-                    items: weekdayPickerItems,
+                    weekDates: viewModel.weekDates,
                     selectedDayIndex: $selectedDayIndex
                 )
             }
@@ -51,6 +52,13 @@ struct OverviewView: View {
             selectInitialDayIfNeeded(weekDateCount: count)
         }
     }
+    
+    private var weekdayPicker: some View {
+        OverviewWeekdayPickerView(
+            weekDates: viewModel.weekDates,
+            selectedDayIndex: $selectedDayIndex
+        )
+    }
 
     private func fixturesList(for dayIndex: Int) -> some View {
         let fixtures = viewModel.fixturesForDay(at: dayIndex)
@@ -68,18 +76,6 @@ struct OverviewView: View {
                 await viewModel.loadOverview()
             }
         )
-    }
-
-    private var weekdayPickerItems: [OverviewWeekdayPickerItem] {
-        visibleWeekdayIndices.map { index in
-            let day = viewModel.dayItem(for: index)
-
-            return OverviewWeekdayPickerItem(
-                index: index,
-                weekdayLabel: day.weekdayLabel,
-                dayLabel: day.dayLabel
-            )
-        }
     }
 
     private var visibleWeekdayIndices: [Int] {
@@ -106,20 +102,22 @@ struct OverviewView: View {
     }
 
     private func handleSelectedDayIndexChange(_ index: Int) async {
-        guard !isSwitchingWeek else { return }
-        guard viewModel.weekDates.count >= 9 else { return }
+        guard !isSwitchingWeek else {
+            return
+        }
 
-        let previousSundayIndex = 0
-        let nextMondayIndex = viewModel.weekDates.count - 1
-
-        if index == previousSundayIndex {
-            await switchToPreviousWeek()
-        } else if index == nextMondayIndex {
-            await switchToNextWeek()
+        if index == 0 {
+            await loadPreviousWeek()
+        } else if index == viewModel.weekDates.count - 1 {
+            await loadNextWeek()
         }
     }
 
-    private func switchToPreviousWeek() async {
+    private func loadPreviousWeek() async {
+        guard !isSwitchingWeek else {
+            return
+        }
+
         isSwitchingWeek = true
 
         await viewModel.loadPreviousWeek()
@@ -127,8 +125,12 @@ struct OverviewView: View {
 
         isSwitchingWeek = false
     }
+    
+    private func loadNextWeek() async {
+        guard !isSwitchingWeek else {
+            return
+        }
 
-    private func switchToNextWeek() async {
         isSwitchingWeek = true
 
         await viewModel.loadNextWeek()

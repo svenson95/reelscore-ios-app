@@ -16,10 +16,11 @@ final class OverviewViewModel: ObservableObject {
 
     private var currentWeekStart: Date
     private var didLoad = false
+    private var isChangingWeek = false
 
     init() {
         currentWeekStart = Self.startOfWeek(for: Date())
-        weekDates = Self.makeWeekDates(from: currentWeekStart, withEdgeDays: true)
+        updateWeekDates()
     }
 
     var todayWeekdayIndex: Int {
@@ -44,47 +45,44 @@ final class OverviewViewModel: ObservableObject {
         isLoading = true
         errorMessage = nil
 
+        let requestedWeekStart = currentWeekStart
+
         defer {
             isLoading = false
             didLoadInitialData = true
         }
 
         do {
-            let dateString = currentWeekStart.apiDateString
-            weekFixtures = try await FixturesService().getWeekFixtures(
+            let dateString = requestedWeekStart.apiDateString
+
+            let fixtures = try await FixturesService().getWeekFixtures(
                 date: dateString,
                 withEdgeDays: true
             )
-            weekDates = Self.makeWeekDates(from: currentWeekStart, withEdgeDays: true)
+
+            // Wichtig:
+            // Falls während des Requests schon wieder die Woche gewechselt wurde,
+            // darf die alte Response nicht mehr die neue Woche überschreiben.
+            guard requestedWeekStart == currentWeekStart else {
+                return
+            }
+
+            weekFixtures = fixtures
         } catch {
+            guard requestedWeekStart == currentWeekStart else {
+                return
+            }
+
             errorMessage = "Spiele konnten nicht geladen werden"
         }
     }
 
     func loadNextWeek() async {
-        guard let nextWeekStart = Calendar.current.date(
-            byAdding: .day,
-            value: 7,
-            to: currentWeekStart
-        ) else {
-            return
-        }
-
-        currentWeekStart = nextWeekStart
-        await loadOverview()
+        await changeWeek(by: 7)
     }
 
     func loadPreviousWeek() async {
-        guard let previousWeekStart = Calendar.current.date(
-            byAdding: .day,
-            value: -7,
-            to: currentWeekStart
-        ) else {
-            return
-        }
-
-        currentWeekStart = previousWeekStart
-        await loadOverview()
+        await changeWeek(by: -7)
     }
 
     func fixturesForDay(at index: Int) -> [Fixture] {
@@ -95,12 +93,34 @@ final class OverviewViewModel: ObservableObject {
         return weekFixtures[index]
     }
 
-    func dayItem(for index: Int) -> WeekdayItem {
-        guard weekDates.indices.contains(index) else {
-            return WeekdayItem(date: Date())
+    private func changeWeek(by days: Int) async {
+        guard !isChangingWeek else {
+            return
         }
 
-        return WeekdayItem(date: weekDates[index])
+        guard let newWeekStart = Calendar.current.date(
+            byAdding: .day,
+            value: days,
+            to: currentWeekStart
+        ) else {
+            return
+        }
+
+        isChangingWeek = true
+
+        currentWeekStart = newWeekStart
+        updateWeekDates()
+
+        await loadOverview()
+
+        isChangingWeek = false
+    }
+
+    private func updateWeekDates() {
+        weekDates = Self.makeWeekDates(
+            from: currentWeekStart,
+            withEdgeDays: true
+        )
     }
 
     private static func makeWeekDates(from weekStart: Date, withEdgeDays: Bool) -> [Date] {
@@ -134,7 +154,11 @@ final class OverviewViewModel: ObservableObject {
         // Montag als Wochenstart:
         let daysFromMonday = (weekday + 5) % 7
 
-        let monday = calendar.date(byAdding: .day, value: -daysFromMonday, to: date) ?? date
+        let monday = calendar.date(
+            byAdding: .day,
+            value: -daysFromMonday,
+            to: date
+        ) ?? date
 
         return calendar.startOfDay(for: monday)
     }

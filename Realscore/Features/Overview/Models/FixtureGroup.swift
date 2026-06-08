@@ -11,6 +11,7 @@ struct FixtureGroupKey: Hashable {
 struct FixtureSectionGroup: Identifiable {
     let competition: String
     let competitionLogo: String?
+    let competitionId: Int
     let round: String
     let fixtures: [Fixture]
 

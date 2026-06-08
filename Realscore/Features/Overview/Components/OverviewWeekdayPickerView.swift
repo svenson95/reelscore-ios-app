@@ -5,24 +5,20 @@
 
 import SwiftUI
 
-struct OverviewWeekdayPickerItem: Identifiable {
-    let index: Int
-    let weekdayLabel: String
-    let dayLabel: String
-
-    var id: Int {
-        index
-    }
-}
-
 struct OverviewWeekdayPickerView: View {
-    let items: [OverviewWeekdayPickerItem]
+    let weekDates: [Date]
 
     @Binding var selectedDayIndex: Int
 
+    private let firstRealDayIndex = 1
+
+    private var lastRealDayIndex: Int {
+        max(weekDates.count - 2, 0)
+    }
+
     var body: some View {
         HStack(spacing: 4) {
-            ForEach(items) { item in
+            ForEach(weekdayItems) { item in
                 Button {
                     selectedDayIndex = item.index
                 } label: {
@@ -34,6 +30,19 @@ struct OverviewWeekdayPickerView: View {
         .padding(.horizontal, 8)
         .padding(.vertical, 8)
         .background(.bar)
+    }
+
+    private var weekdayItems: [OverviewWeekdayPickerItem] {
+        weekDates.indices
+            .filter { index in
+                index >= firstRealDayIndex && index <= lastRealDayIndex
+            }
+            .map { index in
+                OverviewWeekdayPickerItem(
+                    index: index,
+                    date: weekDates[index]
+                )
+            }
     }
 
     private func weekdayContent(for item: OverviewWeekdayPickerItem) -> some View {
@@ -57,5 +66,22 @@ struct OverviewWeekdayPickerView: View {
         selectedDayIndex == item.index
             ? Color.accentColor.opacity(0.18)
             : Color.clear
+    }
+}
+
+private struct OverviewWeekdayPickerItem: Identifiable {
+    let index: Int
+    let date: Date
+
+    var id: Int {
+        index
+    }
+
+    var weekdayLabel: String {
+        date.formatted(.dateTime.weekday(.abbreviated))
+    }
+
+    var dayLabel: String {
+        date.formatted(.dateTime.day())
     }
 }
