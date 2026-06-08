@@ -9,7 +9,7 @@ typealias MongoDbId = String
 typealias TeamId = Int
 
 struct Fixture: Identifiable, Codable, Hashable {
-    let mongoId: MongoDbId
+    let _id: MongoDbId?
     let fixture: FixtureInfo
     let league: FixtureLeague
     let teams: MatchTeams
@@ -24,7 +24,7 @@ struct Fixture: Identifiable, Codable, Hashable {
             return intId
         }
 
-        return mongoId.hashValue
+        return fixture.id.hashValue
     }
 
     var displayName: String {
@@ -36,7 +36,7 @@ struct Fixture: Identifiable, Codable, Hashable {
     }
 
     enum CodingKeys: String, CodingKey {
-        case mongoId = "_id"
+        case _id
         case fixture
         case league
         case teams
@@ -48,11 +48,11 @@ struct Fixture: Identifiable, Codable, Hashable {
     }
 
     static func == (lhs: Fixture, rhs: Fixture) -> Bool {
-        lhs.mongoId == rhs.mongoId
+        lhs.fixture.id == rhs.fixture.id
     }
 
     func hash(into hasher: inout Hasher) {
-        hasher.combine(mongoId)
+        hasher.combine(fixture.id)
     }
 }
 

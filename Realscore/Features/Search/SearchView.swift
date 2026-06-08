@@ -6,20 +6,49 @@
 import SwiftUI
 
 struct SearchView: View {
-    @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel = SearchViewModel()
     @State private var searchText = ""
 
+    private var trimmedSearchText: String {
+        searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
     var body: some View {
         List {
-            if searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                EmptyStateView(
-                    title: "Suche starten",
+            if trimmedSearchText.isEmpty {
+                ContentUnavailableView(
+                    "Suche starten",
                     systemImage: "magnifyingglass"
                 )
+                .listRowSeparator(.hidden)
+            } else if viewModel.isLoading {
+                HStack {
+                    Spacer()
+                    ProgressView()
+                    Spacer()
+                }
+                .listRowSeparator(.hidden)
+            } else if let errorMessage = viewModel.errorMessage {
+                ContentUnavailableView(
+                    errorMessage,
+                    systemImage: "exclamationmark.triangle"
+                )
+                .listRowSeparator(.hidden)
+            } else if viewModel.resultGroups.isEmpty {
+                ContentUnavailableView(
+                    "Keine Ergebnisse gefunden",
+                    systemImage: "magnifyingglass"
+                )
+                .listRowSeparator(.hidden)
             } else {
-                ForEach(viewModel.results) { result in
-                    SearchResultRowView(result: result)
+                ForEach(viewModel.resultGroups) { group in
+                    Section {
+                        ForEach(group.results) { result in
+                            SearchResultRowView(result: result)
+                        }
+                    } header: {
+                        Text(group.label)
+                    }
                 }
             }
         }
@@ -27,20 +56,10 @@ struct SearchView: View {
         .navigationBarTitleDisplayMode(.inline)
         .searchable(
             text: $searchText,
-            placement: .navigationBarDrawer(displayMode: .always),
             prompt: "Team, Liga oder Spiel suchen"
         )
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    dismiss()
-                } label: {
-                    Text("Done")
-                }
-            }
-        }
         .onChange(of: searchText) { _, newValue in
-            viewModel.search(query: newValue)
+            viewModel.searchTextChanged(newValue)
         }
     }
 }

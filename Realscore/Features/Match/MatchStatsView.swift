@@ -11,9 +11,8 @@ struct MatchStatsView: View {
     var body: some View {
         Section("Stats") {
             LabeledContent("Fixture ID", value: "\(fixture.id)")
-            LabeledContent("Mongo ID", value: fixture.mongoId)
             LabeledContent("Start", value: fixture.fixture.date)
-            LabeledContent("Status", value: fixture.fixture.status.short)
+            LabeledContent("Status", value: fixture.fixture.status.long)
 
             if let elapsed = fixture.fixture.status.elapsed {
                 LabeledContent("Minute", value: "\(elapsed)")

@@ -12,7 +12,7 @@ struct StandingPreviewView: View {
         VStack(alignment: .leading, spacing: 8) {
             SectionHeaderView(title: "Top 5")
 
-            ForEach(standings.prefix(5)) { standing in
+            ForEach(standings) { standing in
                 HStack {
                     Text("\(standing.position).")
                         .foregroundStyle(.secondary)
