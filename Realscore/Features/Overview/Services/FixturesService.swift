@@ -31,12 +31,14 @@ final class FixturesService: FixturesServiceProvider {
             throw URLError(.badURL)
         }
 
+        print("Request: ", url)
         let (data, response) = try await session.data(from: url)
 
         guard let httpResponse = response as? HTTPURLResponse else {
             throw URLError(.badServerResponse)
         }
 
+        print("Response: ", httpResponse.statusCode)
         guard (200...299).contains(httpResponse.statusCode) else {
             throw FixturesServiceError.requestFailed(
                 statusCode: httpResponse.statusCode,

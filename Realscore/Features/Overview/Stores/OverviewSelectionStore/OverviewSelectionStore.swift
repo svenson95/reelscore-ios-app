@@ -17,11 +17,7 @@ final class OverviewSelectionStore: ObservableObject {
     private var didSelectInitialDay = false
     private var pendingTask: Task<Void, Never>?
 
-    private let navigator: OverviewSelectionNavigator
-
-    init(navigator: OverviewSelectionNavigator = OverviewSelectionNavigator()) { // Call to main actor-isolated initializer 'init()' in a synchronous nonisolated context
-        self.navigator = navigator
-    }
+    private let navigator = OverviewSelectionNavigator()
 
     var selectedDateText: String {
         selectedDate.dayMonthYearString
@@ -108,11 +104,16 @@ final class OverviewSelectionStore: ObservableObject {
         cancelPendingTask()
         commit(index, in: viewModel.weekDates)
 
-        guard OverviewSelectionRules.isEdgeIndex(index) else { return }
+        guard OverviewSelectionRules.isEdgeIndex(index) else {
+            return
+        }
 
         pendingTask = Task { @MainActor in
+            defer {
+                pendingTask = nil
+            }
+
             await switchWeek(from: index, viewModel: viewModel)
-            pendingTask = nil
         }
     }
 
@@ -169,24 +170,23 @@ final class OverviewSelectionStore: ObservableObject {
         viewModel: OverviewViewModel
     ) async {
         guard !isSwitchingWeek else { return }
+        guard OverviewSelectionRules.isEdgeIndex(edgeIndex) else { return }
 
         isSwitchingWeek = true
         defer { isSwitchingWeek = false }
 
-        let fallbackIndex = selectedDayIndex
+        let didLoad = await viewModel.loadWeek(containing: selectedDate)
+        guard didLoad else {
+            commit(selectedDayIndex, in: viewModel.weekDates)
+            return
+        }
 
-        let result = await navigator.switchWeek(
-            from: edgeIndex,
-            fallbackIndex: fallbackIndex,
-            loadPreviousWeek: {
-                await viewModel.loadPreviousWeek()
-            },
-            loadNextWeek: {
-                await viewModel.loadNextWeek()
-            }
+        let targetIndex = navigator.indexForLoadedDate(
+            selectedDate,
+            weekDates: viewModel.weekDates
         )
 
-        commit(result.targetIndex, in: viewModel.weekDates)
+        commit(targetIndex, in: viewModel.weekDates)
     }
 
     private func commit(_ index: Int, in weekDates: [Date]) {

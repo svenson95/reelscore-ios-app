@@ -43,33 +43,25 @@ final class OverviewViewModel: ObservableObject {
     func loadOverviewIfNeeded() async {
         guard !didLoad else { return }
 
-        didLoad = true
-        await loadLocked(weekStart)
+        let didSucceed = await loadLocked(date: Date())
+        if didSucceed {
+            didLoad = true
+        }
     }
 
     @discardableResult
     func refreshVisibleWeek() async -> Bool {
-        await loadLocked(visibleWeekStart)
+        await loadLocked(date: visibleWeekStart)
     }
 
     @discardableResult
     func loadCurrentWeek() async -> Bool {
-        let start = WeekDateHelper.start(for: Date())
-        return await loadLocked(start)
+        await loadLocked(date: Date())
     }
-    
+
     @discardableResult
     func loadWeek(containing date: Date) async -> Bool {
-        let start = WeekDateHelper.start(for: date)
-        return await loadLocked(start)
-    }
-
-    func loadPreviousWeek() async -> Bool {
-        await shiftWeek(by: -7)
-    }
-
-    func loadNextWeek() async -> Bool {
-        await shiftWeek(by: 7)
+        await loadLocked(date: date)
     }
 
     func fixturesForDay(at index: Int) -> [Fixture] {
@@ -80,16 +72,8 @@ final class OverviewViewModel: ObservableObject {
         return weekdayItems[index].fixtures
     }
 
-    private func shiftWeek(by days: Int) async -> Bool {
-        guard let start = WeekDateHelper.addDays(days, to: visibleWeekStart) else {
-            return false
-        }
-
-        return await loadLocked(start)
-    }
-    
     @discardableResult
-    private func loadLocked(_ start: Date) async -> Bool {
+    private func loadLocked(date: Date) async -> Bool {
         guard !isBusy else {
             return false
         }
@@ -97,11 +81,11 @@ final class OverviewViewModel: ObservableObject {
         isBusy = true
         defer { isBusy = false }
 
-        return await loadWeek(start)
+        return await loadWeek(date: date)
     }
 
     @discardableResult
-    private func loadWeek(_ start: Date) async -> Bool {
+    private func loadWeek(date: Date) async -> Bool {
         isLoading = true
         errorMessage = nil
 
@@ -110,12 +94,13 @@ final class OverviewViewModel: ObservableObject {
             didLoadInitialData = true
         }
 
-        let newStart = WeekDateHelper.start(for: start)
+        let selectedDate = WeekDateHelper.day(for: date)
+        let newStart = WeekDateHelper.start(for: selectedDate)
         let newDates = WeekDateHelper.dates(from: newStart)
 
         do {
             let fixtures = try await service.getWeekFixtures(
-                date: newStart.apiDateString,
+                date: selectedDate.apiDateString,
                 withEdgeDays: true
             )
 
@@ -133,6 +118,7 @@ final class OverviewViewModel: ObservableObject {
             return false
         } catch {
             errorMessage = "Spiele konnten nicht geladen werden"
+            print("❌ Fixtures loading failed:", error)
             return false
         }
     }

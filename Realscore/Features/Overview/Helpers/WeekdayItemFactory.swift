@@ -14,6 +14,9 @@ enum WeekdayItemFactory {
 
     static func make(dates: [Date], fixtures: [[Fixture]]) -> [WeekdayItem]? {
         guard dates.count == fixtures.count else {
+            print("WeekdayItemFactory mismatch:")
+            print("dates:", dates.map(\.apiDateString))
+            print("fixtures count:", fixtures.count)
             return nil
         }
 

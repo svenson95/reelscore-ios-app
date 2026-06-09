@@ -15,12 +15,18 @@ struct OverviewFixturesListView: View {
     let onRetry: () async -> Void
     let onRefresh: () async -> Void
 
+    @State private var isRetrying = false
+
     private var groupedFixtures: [FixtureSectionGroup] {
         fixtures.groupedByCompetitionAndRound()
     }
 
     private var shouldShowEmptyState: Bool {
-        fixtures.isEmpty && !isLoading && didLoadInitialData
+        fixtures.isEmpty && !isLoading && !isRetrying && didLoadInitialData
+    }
+
+    private var showsRetryLoading: Bool {
+        isRetrying || isLoading
     }
 
     var body: some View {
@@ -37,10 +43,26 @@ struct OverviewFixturesListView: View {
     @ViewBuilder
     private var errorSection: some View {
         if let errorMessage {
-            ErrorView(message: errorMessage) {
-                Task {
-                    await onRetry()
-                }
+            ErrorView(
+                message: errorMessage,
+                isRetrying: showsRetryLoading
+            ) {
+                retry()
+            }
+        }
+    }
+
+    @MainActor
+    private func retry() {
+        guard !isRetrying else { return }
+
+        isRetrying = true
+
+        Task {
+            await onRetry()
+
+            await MainActor.run {
+                isRetrying = false
             }
         }
     }

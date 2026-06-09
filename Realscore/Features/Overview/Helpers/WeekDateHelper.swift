@@ -17,6 +17,10 @@ enum WeekDateHelper {
         return calendar.date(from: components) ?? calendar.startOfDay(for: date)
     }
 
+    static func day(for date: Date) -> Date {
+        Calendar.appCalendar.startOfDay(for: date)
+    }
+
     static func addDays(_ days: Int, to date: Date) -> Date? {
         Calendar.appCalendar.date(byAdding: .day, value: days, to: date)
     }

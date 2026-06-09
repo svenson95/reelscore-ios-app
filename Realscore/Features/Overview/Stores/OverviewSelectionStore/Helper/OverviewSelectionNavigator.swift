@@ -42,44 +42,4 @@ struct OverviewSelectionNavigator {
             in: weekDates
         )
     }
-
-    func switchWeek(
-        from edgeIndex: Int,
-        fallbackIndex: Int,
-        loadPreviousWeek: () async -> Bool,
-        loadNextWeek: () async -> Bool
-    ) async -> OverviewWeekSwitchResult {
-        switch edgeIndex {
-        case Constants.previousWeekEdgeIndex:
-            let didLoad = await loadPreviousWeek()
-
-            return OverviewWeekSwitchResult(
-                didLoad: didLoad,
-                targetIndex: didLoad
-                    ? Constants.lastRealWeekdayIndex
-                    : fallbackIndex
-            )
-
-        case Constants.nextWeekEdgeIndex:
-            let didLoad = await loadNextWeek()
-
-            return OverviewWeekSwitchResult(
-                didLoad: didLoad,
-                targetIndex: didLoad
-                    ? Constants.firstRealWeekdayIndex
-                    : fallbackIndex
-            )
-
-        default:
-            return OverviewWeekSwitchResult(
-                didLoad: false,
-                targetIndex: fallbackIndex
-            )
-        }
-    }
-}
-
-struct OverviewWeekSwitchResult {
-    let didLoad: Bool
-    let targetIndex: Int
 }
