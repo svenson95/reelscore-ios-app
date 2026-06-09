@@ -13,6 +13,7 @@ final class OverviewViewModel: ObservableObject {
     @Published private(set) var errorMessage: String?
     @Published private(set) var didLoadInitialData = false
     @Published private(set) var visibleWeekStart: Date
+    @Published private(set) var refreshID = UUID()
 
     private let service: FixturesServiceProvider
 
@@ -43,11 +44,12 @@ final class OverviewViewModel: ObservableObject {
         guard !didLoad else { return }
 
         didLoad = true
-        await loadOverview()
+        await loadLocked(weekStart)
     }
 
-    func loadOverview() async {
-        await loadWeek(weekStart)
+    @discardableResult
+    func refreshVisibleWeek() async -> Bool {
+        await loadLocked(visibleWeekStart)
     }
 
     @discardableResult
@@ -72,22 +74,15 @@ final class OverviewViewModel: ObservableObject {
         return weekdayItems[index].fixtures
     }
 
-//    func dateForDay(at index: Int) -> Date? {
-//        guard weekdayItems.indices.contains(index) else {
-//            return nil
-//        }
-//
-//        return weekdayItems[index].date
-//    }
-
     private func shiftWeek(by days: Int) async -> Bool {
-        guard let start = WeekDateHelper.addDays(days, to: weekStart) else {
+        guard let start = WeekDateHelper.addDays(days, to: visibleWeekStart) else {
             return false
         }
 
         return await loadLocked(start)
     }
 
+    @discardableResult
     private func loadLocked(_ start: Date) async -> Bool {
         guard !isBusy else {
             return false
@@ -138,7 +133,8 @@ final class OverviewViewModel: ObservableObject {
 
     private func commitWeek(start: Date, items: [WeekdayItem]) {
         weekStart = start
-        weekdayItems = items
         visibleWeekStart = start
+        weekdayItems = items
+        refreshID = UUID()
     }
 }

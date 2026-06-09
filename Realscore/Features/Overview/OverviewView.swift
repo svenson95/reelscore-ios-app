@@ -14,7 +14,7 @@ struct OverviewView: View {
     }
 
     private var tabViewID: String {
-        viewModel.visibleWeekStart.apiDateString
+        "\(viewModel.visibleWeekStart.apiDateString)-\(viewModel.refreshID)"
     }
 
     var body: some View {
@@ -46,7 +46,7 @@ struct OverviewView: View {
             }
             .refreshable {
                 guard !selectionStore.isSwitchingWeek else { return }
-                await viewModel.loadOverview()
+                await viewModel.refreshVisibleWeek()
             }
             .onDisappear {
                 selectionStore.cancelPendingTask()
@@ -90,7 +90,7 @@ struct OverviewView: View {
             didLoadInitialData: viewModel.didLoadInitialData,
             canReload: !selectionStore.isSwitchingWeek,
             onReload: {
-                await viewModel.loadOverview()
+                await viewModel.refreshVisibleWeek()
             }
         )
     }
