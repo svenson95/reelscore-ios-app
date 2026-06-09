@@ -7,7 +7,7 @@ import Foundation
 
 enum WeekdayHelper {
     static func currentWorkWeek() -> [WeekdayItem] {
-        let calendar = Calendar.current
+        let calendar = Calendar.appCalendar
         let today = Date()
         let daysFromMonday = today.weekdayIndex
 

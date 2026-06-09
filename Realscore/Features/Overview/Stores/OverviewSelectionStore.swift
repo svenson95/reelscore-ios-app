@@ -22,7 +22,7 @@ final class OverviewSelectionStore: ObservableObject {
     }
 
     var isTodaySelected: Bool {
-        selectedDate.isSameDay(as: Date())
+        Calendar.appCalendar.isDate(selectedDate, inSameDayAs: Date())
     }
 
     func dayBinding(viewModel: OverviewViewModel) -> Binding<Int> {
@@ -63,7 +63,7 @@ final class OverviewSelectionStore: ObservableObject {
         let today = Date()
 
         if let index = viewModel.weekDates.firstIndex(where: {
-            Calendar.current.isDate($0, inSameDayAs: today)
+            Calendar.appCalendar.isDate($0, inSameDayAs: today)
         }) {
             if !isEdgeIndex(index) {
                 commit(index, in: viewModel.weekDates)
@@ -79,7 +79,7 @@ final class OverviewSelectionStore: ObservableObject {
         guard didLoad else { return }
 
         guard let index = viewModel.weekDates.firstIndex(where: {
-            Calendar.current.isDate($0, inSameDayAs: today)
+            Calendar.appCalendar.isDate($0, inSameDayAs: today)
         }) else {
             commit(Constants.firstRealWeekdayIndex, in: viewModel.weekDates)
             return

@@ -36,7 +36,7 @@ final class OverviewViewModel: ObservableObject {
 
     var todayWeekdayIndex: Int {
         weekdayItems.firstIndex {
-            Calendar.current.isDateInToday($0.date)
+            Calendar.appCalendar.isDateInToday($0.date)
         } ?? -1
     }
 
@@ -81,7 +81,7 @@ final class OverviewViewModel: ObservableObject {
 
         return await loadLocked(start)
     }
-
+    
     @discardableResult
     private func loadLocked(_ start: Date) async -> Bool {
         guard !isBusy else {

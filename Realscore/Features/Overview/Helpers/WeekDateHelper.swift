@@ -7,21 +7,22 @@ import Foundation
 
 enum WeekDateHelper {
     static func start(for date: Date) -> Date {
-        let calendar = Calendar.current
-        let day = calendar.startOfDay(for: date)
-        let offset = day.weekdayIndex
+        let calendar = Calendar.appCalendar
 
-        let monday = calendar.date(
-            byAdding: .day,
-            value: -offset,
-            to: day
-        ) ?? day
+        let components = calendar.dateComponents(
+            [.yearForWeekOfYear, .weekOfYear],
+            from: date
+        )
 
-        return calendar.startOfDay(for: monday)
+        return calendar.date(from: components) ?? calendar.startOfDay(for: date)
+    }
+
+    static func addDays(_ days: Int, to date: Date) -> Date? {
+        Calendar.appCalendar.date(byAdding: .day, value: days, to: date)
     }
 
     static func dates(from weekStart: Date, edge: Bool = true) -> [Date] {
-        let calendar = Calendar.current
+        let calendar = Calendar.appCalendar
         let start = calendar.startOfDay(for: weekStart)
 
         let week = (0..<7).compactMap {
@@ -33,20 +34,12 @@ enum WeekDateHelper {
         }
 
         guard
-            let prev = calendar.date(byAdding: .day, value: -1, to: start),
-            let next = calendar.date(byAdding: .day, value: 7, to: start)
+            let previousEdgeDay = calendar.date(byAdding: .day, value: -1, to: start),
+            let nextEdgeDay = calendar.date(byAdding: .day, value: 7, to: start)
         else {
             return week
         }
 
-        return [prev] + week + [next]
-    }
-
-    static func addDays(_ days: Int, to date: Date) -> Date? {
-        Calendar.current.date(
-            byAdding: .day,
-            value: days,
-            to: date
-        )
+        return [previousEdgeDay] + week + [nextEdgeDay]
     }
 }

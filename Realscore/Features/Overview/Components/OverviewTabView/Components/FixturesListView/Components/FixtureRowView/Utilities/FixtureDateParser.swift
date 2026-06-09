@@ -16,9 +16,10 @@ enum FixtureDateParser {
 
     static let kickoffTimeFormatter: DateFormatter = {
         let formatter = DateFormatter()
+        formatter.calendar = .appCalendar
+        formatter.locale = .appLocale
+        formatter.timeZone = .appTimeZone
         formatter.dateFormat = "HH:mm"
-        formatter.locale = Locale(identifier: "de_DE")
-        formatter.timeZone = TimeZone(identifier: "Europe/Berlin")
         return formatter
     }()
 
