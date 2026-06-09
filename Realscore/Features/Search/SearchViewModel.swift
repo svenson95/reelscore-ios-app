@@ -8,92 +8,111 @@ import Combine
 
 @MainActor
 final class SearchViewModel: ObservableObject {
-    @Published private var results: [SearchResult] = []
-    @Published var isLoading = false
-    @Published var errorMessage: String?
+    static let minimumQueryLength = 3
+
+    @Published private(set) var query = ""
+    @Published private(set) var resultGroups: [SearchResultGroup] = []
+    @Published private(set) var isLoading = false
+    @Published private(set) var errorMessage: String?
+
+    private let service: SearchServiceProvider
+    private let grouper: SearchResultsGrouper
+    private let debounceMilliseconds: UInt64
 
     private var searchTask: Task<Void, Never>?
     private var latestQuery = ""
-    
-    var resultGroups: [SearchResultGroup] {
-        let labels: [SearchType: String] = [
-            .fixtures: "Spiele",
-            .competitions: "Wettbewerbe",
-            .teams: "Teams"
-        ]
 
-        let order: [SearchType] = [
-            .competitions,
-            .teams,
-            .fixtures
-        ]
+    var state: SearchViewState {
+        SearchViewState.make(
+            query: query,
+            isLoading: isLoading,
+            errorMessage: errorMessage,
+            resultGroups: resultGroups
+        )
+    }
 
-        return order.compactMap { type in
-            let filteredResults = results.filter { $0.type == type }
+    init(
+        service: SearchServiceProvider? = nil,
+        grouper: SearchResultsGrouper? = nil,
+        debounceMilliseconds: UInt64 = 350
+    ) {
+        self.service = service ?? SearchService.shared
+        self.grouper = grouper ?? SearchResultsGrouper()
+        self.debounceMilliseconds = debounceMilliseconds
+    }
 
-            guard !filteredResults.isEmpty else {
-                return nil
-            }
-
-            return SearchResultGroup(
-                type: type,
-                label: labels[type] ?? "",
-                results: filteredResults
-            )
-        }
+    deinit {
+        searchTask?.cancel()
     }
 
     func searchTextChanged(_ text: String) {
         searchTask?.cancel()
 
-        let query = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        latestQuery = query
+        let normalizedQuery = normalizedQuery(from: text)
 
-        guard query.count >= 3 else {
-            results = []
-            isLoading = false
-            errorMessage = nil
+        query = normalizedQuery
+        latestQuery = normalizedQuery
+
+        guard normalizedQuery.count >= Self.minimumQueryLength else {
+            resetSearchState()
             return
         }
 
-        isLoading = true
+        startSearch(for: normalizedQuery)
+    }
+
+    private func startSearch(for query: String) {
         errorMessage = nil
 
         searchTask = Task { [weak self] in
+            guard let self else { return }
+
             do {
-                try await Task.sleep(for: .milliseconds(350))
+                try await Task.sleep(for: .milliseconds(self.debounceMilliseconds))
                 try Task.checkCancellation()
 
-                let searchResults = try await Self.fetchSearchResults(query: query)
+                self.isLoading = true
+
+                let results = try await self.service.search(by: query)
 
                 try Task.checkCancellation()
 
-                await MainActor.run {
-                    guard self?.latestQuery == query else {
-                        return
-                    }
-
-                    self?.results = searchResults
-                    self?.isLoading = false
-                    self?.errorMessage = nil
-                }
+                self.applyResults(results, for: query)
             } catch is CancellationError {
-                // ignorieren
+                // ignore
             } catch {
-                await MainActor.run {
-                    guard self?.latestQuery == query else {
-                        return
-                    }
-
-                    self?.results = []
-                    self?.isLoading = false
-                    self?.errorMessage = "Suche fehlgeschlagen"
-                }
+                self.applySearchFailure(for: query)
             }
         }
     }
 
-    nonisolated private static func fetchSearchResults(query: String) async throws -> [SearchResult] {
-        try await SearchService.shared.search(by: query)
+    private func applyResults(_ results: [SearchResult], for query: String) {
+        guard latestQuery == query else {
+            return
+        }
+
+        resultGroups = grouper.group(results)
+        isLoading = false
+        errorMessage = nil
+    }
+
+    private func applySearchFailure(for query: String) {
+        guard latestQuery == query else {
+            return
+        }
+
+        resultGroups = []
+        isLoading = false
+        errorMessage = "Suche fehlgeschlagen"
+    }
+
+    private func resetSearchState() {
+        resultGroups = []
+        isLoading = false
+        errorMessage = nil
+    }
+
+    private func normalizedQuery(from text: String) -> String {
+        text.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 }
