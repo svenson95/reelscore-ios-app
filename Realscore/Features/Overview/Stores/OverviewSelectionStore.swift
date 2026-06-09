@@ -194,4 +194,42 @@ final class OverviewSelectionStore: ObservableObject {
         index == Constants.previousWeekEdgeIndex ||
         index == Constants.nextWeekEdgeIndex
     }
+    
+    func selectDate(
+        _ date: Date,
+        viewModel: OverviewViewModel
+    ) async {
+        guard !isSwitchingWeek else { return }
+
+        cancelPendingTask()
+
+        if let index = viewModel.weekDates.firstIndex(where: {
+            Calendar.appCalendar.isDate($0, inSameDayAs: date)
+        }) {
+            if !isEdgeIndex(index) {
+                commit(index, in: viewModel.weekDates)
+                return
+            }
+        }
+
+        isSwitchingWeek = true
+        defer { isSwitchingWeek = false }
+
+        let didLoad = await viewModel.loadWeek(containing: date)
+
+        guard didLoad else { return }
+
+        guard let index = viewModel.weekDates.firstIndex(where: {
+            Calendar.appCalendar.isDate($0, inSameDayAs: date)
+        }) else {
+            commit(Constants.firstRealWeekdayIndex, in: viewModel.weekDates)
+            return
+        }
+
+        let targetIndex = isEdgeIndex(index)
+            ? Constants.firstRealWeekdayIndex
+            : index
+
+        commit(targetIndex, in: viewModel.weekDates)
+    }
 }

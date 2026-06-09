@@ -9,6 +9,9 @@ struct OverviewView: View {
     @StateObject private var viewModel = OverviewViewModel()
     @StateObject private var selectionStore = OverviewSelectionStore()
 
+    @State private var isDatePickerPresented = false
+    @State private var datePickerSelection = Date()
+
     private var selectedDayBinding: Binding<Int> {
         selectionStore.dayBinding(viewModel: viewModel)
     }
@@ -22,16 +25,21 @@ struct OverviewView: View {
             .background(Color(.systemGroupedBackground))
             .scrollContentBackground(.hidden)
             .overlay {
-                if viewModel.isLoading && !viewModel.didLoadInitialData {
-                    LoadingView()
-                }
+                loadingOverlay
             }
+            .overlay {
+                datePickerOverlay
+            }
+            .animation(.easeInOut(duration: 0.2), value: isDatePickerPresented)
             .navigationTitle("Überblick")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 OverviewToolbar(
                     dateText: selectionStore.selectedDateText,
                     showsTodayButton: !selectionStore.isTodaySelected,
+                    onDateTap: {
+                        showDatePicker()
+                    },
                     onToday: {
                         Task {
                             await selectionStore.selectToday(viewModel: viewModel)
@@ -70,6 +78,14 @@ struct OverviewView: View {
                 selectionStore.handleWeekDatesChange(weekDates)
             }
         }
+        .disabled(isDatePickerPresented)
+    }
+
+    @ViewBuilder
+    private var loadingOverlay: some View {
+        if viewModel.isLoading && !viewModel.didLoadInitialData {
+            LoadingView()
+        }
     }
 
     @ViewBuilder
@@ -93,5 +109,40 @@ struct OverviewView: View {
                 await viewModel.refreshVisibleWeek()
             }
         )
+    }
+
+    @ViewBuilder
+    private var datePickerOverlay: some View {
+        if isDatePickerPresented {
+            OverviewDatePickerOverlay(
+                selectedDate: $datePickerSelection,
+                onSelectDate: { date in
+                    selectDate(date)
+                },
+                onDismiss: {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        isDatePickerPresented = false
+                    }
+                }
+            )
+        }
+    }
+
+    private func showDatePicker() {
+        datePickerSelection = selectionStore.selectedDate
+        isDatePickerPresented = true
+    }
+
+    private func selectDate(_ date: Date) {
+        withAnimation(.easeInOut(duration: 0.2)) {
+            isDatePickerPresented = false
+        }
+
+        Task {
+            await selectionStore.selectDate(
+                date,
+                viewModel: viewModel
+            )
+        }
     }
 }

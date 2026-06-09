@@ -57,6 +57,12 @@ final class OverviewViewModel: ObservableObject {
         let start = WeekDateHelper.start(for: Date())
         return await loadLocked(start)
     }
+    
+    @discardableResult
+    func loadWeek(containing date: Date) async -> Bool {
+        let start = WeekDateHelper.start(for: date)
+        return await loadLocked(start)
+    }
 
     func loadPreviousWeek() async -> Bool {
         await shiftWeek(by: -7)

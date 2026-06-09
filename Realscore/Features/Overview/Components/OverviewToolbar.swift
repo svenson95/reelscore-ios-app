@@ -8,12 +8,13 @@ import SwiftUI
 struct OverviewToolbar: ToolbarContent {
     let dateText: String
     let showsTodayButton: Bool
+    let onDateTap: () -> Void
     let onToday: () -> Void
 
     var body: some ToolbarContent {
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                // TODO: DatePicker öffnen
+                onDateTap()
             } label: {
                 Text(dateText)
                     .font(.subheadline.weight(.semibold))
