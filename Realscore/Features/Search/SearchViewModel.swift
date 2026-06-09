@@ -15,6 +15,8 @@ final class SearchViewModel: ObservableObject {
     @Published private(set) var isLoading = false
     @Published private(set) var errorMessage: String?
 
+    @Published private var isWaitingForSearch = false
+
     private let service: SearchServiceProvider
     private let grouper: SearchResultsGrouper
     private let debounceMilliseconds: UInt64
@@ -23,7 +25,11 @@ final class SearchViewModel: ObservableObject {
     private var latestQuery = ""
 
     var state: SearchViewState {
-        SearchViewState.make(
+        if isWaitingForSearch {
+            return .idle
+        }
+
+        return SearchViewState.make(
             query: query,
             isLoading: isLoading,
             errorMessage: errorMessage,
@@ -58,12 +64,17 @@ final class SearchViewModel: ObservableObject {
             return
         }
 
+        preparePendingSearch()
         startSearch(for: normalizedQuery)
     }
 
-    private func startSearch(for query: String) {
+    private func preparePendingSearch() {
+        isWaitingForSearch = true
+        isLoading = false
         errorMessage = nil
+    }
 
+    private func startSearch(for query: String) {
         searchTask = Task { [weak self] in
             guard let self else { return }
 
@@ -71,6 +82,11 @@ final class SearchViewModel: ObservableObject {
                 try await Task.sleep(for: .milliseconds(self.debounceMilliseconds))
                 try Task.checkCancellation()
 
+                guard self.latestQuery == query else {
+                    return
+                }
+
+                self.isWaitingForSearch = false
                 self.isLoading = true
 
                 let results = try await self.service.search(by: query)
@@ -92,6 +108,7 @@ final class SearchViewModel: ObservableObject {
         }
 
         resultGroups = grouper.group(results)
+        isWaitingForSearch = false
         isLoading = false
         errorMessage = nil
     }
@@ -102,12 +119,14 @@ final class SearchViewModel: ObservableObject {
         }
 
         resultGroups = []
+        isWaitingForSearch = false
         isLoading = false
         errorMessage = "Suche fehlgeschlagen"
     }
 
     private func resetSearchState() {
         resultGroups = []
+        isWaitingForSearch = false
         isLoading = false
         errorMessage = nil
     }
