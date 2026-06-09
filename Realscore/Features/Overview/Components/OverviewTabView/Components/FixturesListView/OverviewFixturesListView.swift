@@ -7,7 +7,6 @@ import SwiftUI
 
 struct OverviewFixturesListView: View {
     let fixtures: [Fixture]
-    let groupedFixtures: [FixtureSectionGroup]
 
     let errorMessage: String?
     let isLoading: Bool
@@ -16,11 +15,19 @@ struct OverviewFixturesListView: View {
     let onRetry: () async -> Void
     let onRefresh: () async -> Void
 
+    private var groupedFixtures: [FixtureSectionGroup] {
+        fixtures.groupedByCompetitionAndRound()
+    }
+
+    private var shouldShowEmptyState: Bool {
+        fixtures.isEmpty && !isLoading && didLoadInitialData
+    }
+
     var body: some View {
         List {
             errorSection
             emptySection
-            fixturesSections
+            fixtureSections
         }
         .refreshable {
             await onRefresh()
@@ -48,11 +55,7 @@ struct OverviewFixturesListView: View {
         }
     }
 
-    private var shouldShowEmptyState: Bool {
-        fixtures.isEmpty && !isLoading && didLoadInitialData
-    }
-
-    private var fixturesSections: some View {
+    private var fixtureSections: some View {
         ForEach(groupedFixtures) { group in
             Section {
                 ForEach(group.fixtures) { fixture in

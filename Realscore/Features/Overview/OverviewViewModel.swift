@@ -8,32 +8,33 @@ import Combine
 
 @MainActor
 final class OverviewViewModel: ObservableObject {
-    @Published private(set) var weekFixtures: [[Fixture]] = []
-    @Published private(set) var weekDates: [Date] = []
+    @Published private(set) var weekdayItems: [WeekdayItem] = []
     @Published private(set) var isLoading = false
     @Published private(set) var errorMessage: String?
     @Published private(set) var didLoadInitialData = false
+    @Published private(set) var visibleWeekStart: Date
 
-    private let fixturesService = FixturesService()
+    private let service = FixturesService()
 
-    private var currentWeekStart: Date
+    private var weekStart: Date
     private var didLoad = false
-    private var isLoadingWeek = false
+    private var isBusy = false
 
     init() {
-        currentWeekStart = Self.startOfWeek(for: Date())
+        let start = WeekDateHelper.start(for: Date())
 
-        weekDates = Self.makeWeekDates(
-            from: currentWeekStart,
-            withEdgeDays: true
-        )
+        weekStart = start
+        visibleWeekStart = start
+        weekdayItems = WeekdayItemFactory.empty(from: start)
+    }
+
+    var weekDates: [Date] {
+        weekdayItems.map(\.date)
     }
 
     var todayWeekdayIndex: Int {
-        let calendar = Calendar.current
-
-        return weekDates.firstIndex {
-            calendar.isDateInToday($0)
+        weekdayItems.firstIndex {
+            Calendar.current.isDateInToday($0.date)
         } ?? -1
     }
 
@@ -45,98 +46,86 @@ final class OverviewViewModel: ObservableObject {
     }
 
     func loadOverview() async {
-        await loadWeek(startingAt: currentWeekStart)
+        await loadWeek(weekStart)
     }
 
     @discardableResult
     func loadCurrentWeek() async -> Bool {
-        guard !isLoadingWeek else {
-            return false
-        }
-
-        isLoadingWeek = true
-        defer { isLoadingWeek = false }
-
-        let currentWeekStart = Self.startOfWeek(for: Date())
-
-        return await loadWeek(startingAt: currentWeekStart)
+        let start = WeekDateHelper.start(for: Date())
+        return await loadLocked(start)
     }
 
     func loadPreviousWeek() async -> Bool {
-        await changeWeek(by: -7)
+        await shiftWeek(by: -7)
     }
 
     func loadNextWeek() async -> Bool {
-        await changeWeek(by: 7)
+        await shiftWeek(by: 7)
     }
 
     func fixturesForDay(at index: Int) -> [Fixture] {
-        guard weekFixtures.indices.contains(index) else {
+        guard weekdayItems.indices.contains(index) else {
             return []
         }
 
-        return weekFixtures[index]
+        return weekdayItems[index].fixtures
     }
 
-    func dateForDay(at index: Int) -> Date? {
-        guard weekDates.indices.contains(index) else {
-            return nil
-        }
+//    func dateForDay(at index: Int) -> Date? {
+//        guard weekdayItems.indices.contains(index) else {
+//            return nil
+//        }
+//
+//        return weekdayItems[index].date
+//    }
 
-        return weekDates[index]
-    }
-
-    private func changeWeek(by days: Int) async -> Bool {
-        guard !isLoadingWeek else {
+    private func shiftWeek(by days: Int) async -> Bool {
+        guard let start = WeekDateHelper.addDays(days, to: weekStart) else {
             return false
         }
 
-        guard let newWeekStart = Calendar.current.date(
-            byAdding: .day,
-            value: days,
-            to: currentWeekStart
-        ) else {
+        return await loadLocked(start)
+    }
+
+    private func loadLocked(_ start: Date) async -> Bool {
+        guard !isBusy else {
             return false
         }
 
-        isLoadingWeek = true
-        defer { isLoadingWeek = false }
+        isBusy = true
+        defer { isBusy = false }
 
-        return await loadWeek(startingAt: newWeekStart)
+        return await loadWeek(start)
     }
 
     @discardableResult
-    private func loadWeek(startingAt weekStart: Date) async -> Bool {
+    private func loadWeek(_ start: Date) async -> Bool {
         isLoading = true
+        errorMessage = nil
+
         defer {
             isLoading = false
             didLoadInitialData = true
         }
 
-        errorMessage = nil
-
-        let requestedWeekStart = Self.startOfWeek(for: weekStart)
-
-        let requestedWeekDates = Self.makeWeekDates(
-            from: requestedWeekStart,
-            withEdgeDays: true
-        )
+        let newStart = WeekDateHelper.start(for: start)
+        let newDates = WeekDateHelper.dates(from: newStart)
 
         do {
-            let fixtures = try await fixturesService.getWeekFixtures(
-                date: requestedWeekStart.apiDateString,
+            let fixtures = try await service.getWeekFixtures(
+                date: newStart.apiDateString,
                 withEdgeDays: true
             )
 
-            guard fixtures.count == requestedWeekDates.count else {
+            guard let newItems = WeekdayItemFactory.make(
+                dates: newDates,
+                fixtures: fixtures
+            ) else {
                 errorMessage = "Unerwartete Anzahl an Spieltagen"
                 return false
             }
 
-            currentWeekStart = requestedWeekStart
-            weekDates = requestedWeekDates
-            weekFixtures = fixtures
-
+            commitWeek(start: newStart, items: newItems)
             return true
         } catch is CancellationError {
             return false
@@ -146,51 +135,9 @@ final class OverviewViewModel: ObservableObject {
         }
     }
 
-    private static func makeWeekDates(from weekStart: Date, withEdgeDays: Bool) -> [Date] {
-        let calendar = Calendar.current
-        let normalizedWeekStart = calendar.startOfDay(for: weekStart)
-
-        let mondayToSunday = (0..<7).compactMap { offset in
-            calendar.date(
-                byAdding: .day,
-                value: offset,
-                to: normalizedWeekStart
-            )
-        }
-
-        guard withEdgeDays else {
-            return mondayToSunday
-        }
-
-        guard
-            let previousSunday = calendar.date(
-                byAdding: .day,
-                value: -1,
-                to: normalizedWeekStart
-            ),
-            let nextMonday = calendar.date(
-                byAdding: .day,
-                value: 7,
-                to: normalizedWeekStart
-            )
-        else {
-            return mondayToSunday
-        }
-
-        return [previousSunday] + mondayToSunday + [nextMonday]
-    }
-
-    private static func startOfWeek(for date: Date) -> Date {
-        let calendar = Calendar.current
-        let startOfDay = calendar.startOfDay(for: date)
-        let daysFromMonday = startOfDay.weekdayIndex
-
-        let monday = calendar.date(
-            byAdding: .day,
-            value: -daysFromMonday,
-            to: startOfDay
-        ) ?? startOfDay
-
-        return calendar.startOfDay(for: monday)
+    private func commitWeek(start: Date, items: [WeekdayItem]) {
+        weekStart = start
+        weekdayItems = items
+        visibleWeekStart = start
     }
 }

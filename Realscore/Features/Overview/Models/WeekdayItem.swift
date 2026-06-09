@@ -5,10 +5,14 @@
 
 import Foundation
 
-struct WeekdayItem: Identifiable {
-    let id = UUID()
+struct WeekdayItem: Identifiable, Equatable {
     let date: Date
-    
+    let fixtures: [Fixture]
+
+    var id: String {
+        date.apiDateString
+    }
+
     var weekdayLabel: String {
         date.weekdayString
     }

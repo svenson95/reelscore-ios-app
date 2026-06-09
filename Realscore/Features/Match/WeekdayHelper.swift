@@ -22,7 +22,7 @@ enum WeekdayHelper {
                 continue
             }
 
-            items.append(WeekdayItem(date: date))
+            items.append(WeekdayItem(date: date, fixtures: []))
         }
 
         return items
