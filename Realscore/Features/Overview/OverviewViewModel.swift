@@ -14,15 +14,16 @@ final class OverviewViewModel: ObservableObject {
     @Published private(set) var didLoadInitialData = false
     @Published private(set) var visibleWeekStart: Date
 
-    private let service = FixturesService()
+    private let service: FixturesServiceProvider
 
     private var weekStart: Date
     private var didLoad = false
     private var isBusy = false
 
-    init() {
-        let start = WeekDateHelper.start(for: Date())
+    init(service: FixturesServiceProvider? = nil) {
+        self.service = service ?? FixturesService.shared
 
+        let start = WeekDateHelper.start(for: Date())
         weekStart = start
         visibleWeekStart = start
         weekdayItems = WeekdayItemFactory.empty(from: start)

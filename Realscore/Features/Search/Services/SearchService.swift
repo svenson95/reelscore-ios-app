@@ -5,7 +5,7 @@
 
 import Foundation
 
-final class SearchService {
+final class SearchService: SearchServiceProvider {
     static let shared = SearchService()
 
     private init() {}
