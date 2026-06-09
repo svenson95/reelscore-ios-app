@@ -21,7 +21,7 @@ struct FixtureRowView: View {
     }
 
     var body: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: 6) {
             FixtureTimeBadgeView(
                 text: timeText,
                 status: status

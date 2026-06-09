@@ -11,7 +11,7 @@ struct FixtureTeamView: View {
     let side: FixtureTeamSide
 
     var body: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: 6) {
             if side == .home {
                 teamName(alignment: .trailing)
                 logo

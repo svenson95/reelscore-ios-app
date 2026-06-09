@@ -11,6 +11,7 @@ struct OverviewView: View {
 
     @State private var isDatePickerPresented = false
     @State private var datePickerSelection = Date()
+    @State private var selectedFixture: Fixture?
 
     private var selectedDayBinding: Binding<Int> {
         selectionStore.dayBinding(viewModel: viewModel)
@@ -59,6 +60,9 @@ struct OverviewView: View {
             .onDisappear {
                 selectionStore.cancelPendingTask()
             }
+            .navigationDestination(item: $selectedFixture) { fixture in
+                MatchView(fixture: fixture)
+            }
     }
 
     private var content: some View {
@@ -105,6 +109,9 @@ struct OverviewView: View {
             isLoading: viewModel.isLoading,
             didLoadInitialData: viewModel.didLoadInitialData,
             canReload: !selectionStore.isSwitchingWeek,
+            onFixtureTap: { fixture in
+                selectedFixture = fixture
+            },
             onReload: {
                 await viewModel.refreshVisibleWeek()
             }

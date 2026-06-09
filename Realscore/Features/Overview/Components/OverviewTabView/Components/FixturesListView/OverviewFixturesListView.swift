@@ -6,6 +6,8 @@
 import SwiftUI
 
 struct OverviewFixturesListView: View {
+    @State private var isRetrying = false
+
     let fixtures: [Fixture]
 
     let errorMessage: String?
@@ -14,8 +16,7 @@ struct OverviewFixturesListView: View {
 
     let onRetry: () async -> Void
     let onRefresh: () async -> Void
-
-    @State private var isRetrying = false
+    let onFixtureTap: (Fixture) -> Void
 
     private var groupedFixtures: [FixtureSectionGroup] {
         fixtures.groupedByCompetitionAndRound()
@@ -81,11 +82,13 @@ struct OverviewFixturesListView: View {
         ForEach(groupedFixtures) { group in
             Section {
                 ForEach(group.fixtures) { fixture in
-                    NavigationLink {
-                        MatchView(fixture: fixture)
+                    Button {
+                        onFixtureTap(fixture)
                     } label: {
                         FixtureRowView(fixture: fixture)
+                            .contentShape(Rectangle())
                     }
+                    .buttonStyle(.plain)
                 }
             } header: {
                 FixtureSectionHeaderView(group: group)

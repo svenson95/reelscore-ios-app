@@ -11,6 +11,7 @@ struct OverviewTabView: View {
     let isLoading: Bool
     let didLoadInitialData: Bool
     let canReload: Bool
+    let onFixtureTap: (Fixture) -> Void
     let onReload: () async -> Void
 
     var body: some View {
@@ -20,10 +21,11 @@ struct OverviewTabView: View {
             isLoading: isLoading,
             didLoadInitialData: didLoadInitialData,
             onRetry: reload,
-            onRefresh: reload
+            onRefresh: reload,
+            onFixtureTap: onFixtureTap
         )
     }
-
+    
     private func reload() async {
         guard canReload else { return }
         await onReload()
