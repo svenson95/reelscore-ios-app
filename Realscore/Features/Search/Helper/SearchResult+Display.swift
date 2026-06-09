@@ -13,24 +13,24 @@ extension SearchResult {
             let awayName = result.data.teams.away.name
 
             return [
-                homeName.transformedTeamName,
-                awayName.transformedTeamName
+                homeName.teamName(TeamNameOption.short),
+                awayName.teamName(TeamNameOption.short)
             ]
             .filter { !$0.isEmpty }
             .joined(separator: " - ")
 
         case .competition(let result):
-            return result.data.league.name
+            return result.data.league.name.competitionName()
 
         case .team(let result):
-            return (result.data.team.name).transformedTeamName
+            return result.data.team.name.teamName(TeamNameOption.short)
         }
     }
 
     var subtitle: String {
         switch self {
         case .fixture(let result):
-            return result.data.league.name
+            return result.data.league.name.competitionName()
 
         case .competition(let result):
             return result.data.league.country ?? ""

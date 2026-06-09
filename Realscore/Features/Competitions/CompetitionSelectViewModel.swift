@@ -8,7 +8,7 @@ import Combine
 
 @MainActor
 final class CompetitionSelectViewModel: ObservableObject {
-    @Published var competitionGroups: [CompetitionGroup] = []
+    @Published var competitionGroups: [SelectCompetitionGroup] = []
     @Published var competitions: [Competition] = []
     @Published var isLoading = false
     @Published var errorMessage: String?

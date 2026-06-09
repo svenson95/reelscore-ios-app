@@ -19,7 +19,7 @@ struct Fixture: Identifiable, Codable, Hashable {
     let teams: MatchTeams
     let goals: Goals
     let score: Score
-    let final: FixtureFinal
+    let final: FixtureFinal?
     let prediction: FixturePrediction?
     let evaluations: FixtureEvaluations?
 
@@ -32,7 +32,7 @@ struct Fixture: Identifiable, Codable, Hashable {
     }
 
     var displayName: String {
-        "\(teams.home.name) - \(teams.away.name)"
+        "\(teams.home.name.teamName()) - \(teams.away.name.teamName())"
     }
 
     var kickoffDate: String {

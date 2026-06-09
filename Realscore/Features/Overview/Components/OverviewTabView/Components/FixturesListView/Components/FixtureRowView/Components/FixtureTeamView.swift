@@ -28,7 +28,7 @@ struct FixtureTeamView: View {
     }
 
     private func teamName(alignment: Alignment) -> some View {
-        Text(name)
+        Text(name.teamName(TeamNameOption.short))
             .font(.subheadline)
             .lineLimit(1)
             .frame(maxWidth: .infinity, alignment: alignment)

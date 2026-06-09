@@ -10,17 +10,21 @@ extension Array where Element == Fixture {
         let groups = Dictionary(grouping: self) { fixture in
             FixtureGroupKey(
                 competition: fixture.league.name,
-                round: fixture.league.round ?? "-"
+                round: fixture.league.round ?? ""
             )
         }
 
         return groups
             .map { key, fixtures in
                 FixtureSectionGroup(
-                    competition: key.competition,
-                    competitionLogo: fixtures.first?.league.logo,
-                    competitionId: fixtures.first?.league.id ?? -1,
-                    round: key.round,
+                    competition: key.competition.competitionName(),
+                    competitionLogo: fixtures.first!.league.logo,
+                    competitionId: fixtures.first!.league.id,
+                    round: key.round.roundLabel(
+                        competitionId: fixtures.first!.league.id,
+                        season: fixtures.first!.league.season!,
+                        option: RoundLabelType.header
+                    ),
                     fixtures: fixtures
                 )
             }

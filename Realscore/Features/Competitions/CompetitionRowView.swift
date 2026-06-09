@@ -16,7 +16,7 @@ struct CompetitionRowView: View {
             )
 
             VStack(alignment: .leading, spacing: 4) {
-                Text(competition.name)
+                Text(competition.name.competitionName())
                     .font(.headline)
 
                 if let country = competition.country {

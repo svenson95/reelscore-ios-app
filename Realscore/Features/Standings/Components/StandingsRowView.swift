@@ -22,7 +22,7 @@ struct StandingsRowView: View {
             HStack(spacing: 8) {
                 TeamLogoView(teamId: standing.team.id, size: 16)
 
-                Text(standing.team.name)
+                Text(standing.team.name.teamName(TeamNameOption.short))
                     .lineLimit(1)
             }
             .frame(maxWidth: .infinity, alignment: .leading)

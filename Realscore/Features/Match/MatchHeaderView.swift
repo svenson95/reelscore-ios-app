@@ -14,7 +14,7 @@ struct MatchHeaderView: View {
                 .font(.title3.bold())
                 .multilineTextAlignment(.center)
 
-            Text(fixture.league.name)
+            Text(fixture.league.name.competitionName())
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
         }

@@ -18,7 +18,7 @@ struct MatchStatsView: View {
                 LabeledContent("Minute", value: "\(elapsed)")
             }
 
-            LabeledContent("League", value: fixture.league.name)
+            LabeledContent("League", value: fixture.league.name.competitionName())
             LabeledContent("Teams", value: fixture.displayName)
         }
     }

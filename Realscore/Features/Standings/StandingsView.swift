@@ -35,11 +35,15 @@ struct StandingsView: View {
                             }
                         } header: {
                             VStack(alignment: .leading, spacing: 4) {
-                                Text(standingsDTO.league.name)
+                                Text(standingsDTO.league.name.competitionName())
                                     .font(.headline)
 
                                 if let round = standingsDTO.league.round {
-                                    Text(round)
+                                    let label = round.roundLabel(
+                                        competitionId: standingsDTO.league.id,
+                                        season: standingsDTO.league.season
+                                    )
+                                    Text(label)
                                         .font(.caption)
                                         .foregroundStyle(.secondary)
                                 }
