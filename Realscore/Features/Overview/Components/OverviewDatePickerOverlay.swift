@@ -11,6 +11,19 @@ struct OverviewDatePickerOverlay: View {
     let onSelectDate: (Date) -> Void
     let onDismiss: () -> Void
 
+    @State private var draftDate: Date
+
+    init(
+        selectedDate: Binding<Date>,
+        onSelectDate: @escaping (Date) -> Void,
+        onDismiss: @escaping () -> Void
+    ) {
+        self._selectedDate = selectedDate
+        self.onSelectDate = onSelectDate
+        self.onDismiss = onDismiss
+        self._draftDate = State(initialValue: selectedDate.wrappedValue)
+    }
+
     var body: some View {
         ZStack {
             backdrop
@@ -33,21 +46,22 @@ struct OverviewDatePickerOverlay: View {
 
             DatePicker(
                 "Datum auswählen",
-                selection: $selectedDate,
-                displayedComponents: .date
+                selection: $draftDate,
+                displayedComponents: .date,
             )
             .datePickerStyle(.graphical)
             .labelsHidden()
-            .onChange(of: selectedDate) { _, newDate in
-                onSelectDate(newDate)
-            }
+            .environment(\.locale, .appLocale)
+            .environment(\.calendar, .appCalendar)
+
+            footer
         }
         .padding()
         .frame(maxWidth: 360)
         .background(Color(.systemBackground))
         .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
         .shadow(radius: 24)
-        .padding(.horizontal, 24)
+        .padding(.horizontal, 16)
     }
 
     private var header: some View {
@@ -68,6 +82,24 @@ struct OverviewDatePickerOverlay: View {
                     .clipShape(Circle())
             }
             .buttonStyle(.plain)
+        }
+    }
+
+    private var footer: some View {
+        HStack {
+            Button("Abbrechen") {
+                onDismiss()
+            }
+            .buttonStyle(.bordered)
+
+            Spacer()
+
+            Button("Übernehmen") {
+                selectedDate = draftDate
+                onSelectDate(draftDate)
+                onDismiss()
+            }
+            .buttonStyle(.borderedProminent)
         }
     }
 }
