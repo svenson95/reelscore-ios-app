@@ -22,9 +22,10 @@ struct ErrorView: View {
                 Button("Erneut versuchen") {
                     retry()
                 }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(.bordered)
             }
         }
         .padding()
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
     }
 }
