@@ -188,13 +188,13 @@ struct FixtureEvaluations: Codable, Hashable {
 }
 
 struct FixtureEvaluation: Codable, Hashable {
-    let performance: EvaluationPerformance
+    let performance: EvaluationPerformance?
     let analyses: [EvaluationAnalysis]
 }
 
 struct EvaluationAnalysis: Codable, Hashable {
-    let level: AnalysisLevel
-    let type: AnalysisType
+    let level: AnalysisLevel?
+    let type: AnalysisType?
     let minute: Int?
     let player: String?
     let comments: String?
