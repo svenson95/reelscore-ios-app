@@ -7,6 +7,7 @@ import SwiftUI
 
 enum MainTab: Hashable {
     case overview
+    case standings
     case competitions
     case search
 }
@@ -23,8 +24,8 @@ struct MainView: View {
             } label: {
                 Label("Überblick", systemImage: "list.bullet")
             }
-            
-            Tab(value: MainTab.overview) {
+
+            Tab(value: MainTab.standings) {
                 NavigationStack {
                     StandingsView()
                 }
@@ -49,8 +50,4 @@ struct MainView: View {
             }
         }
     }
-}
-
-#Preview {
-    MainView()
 }
