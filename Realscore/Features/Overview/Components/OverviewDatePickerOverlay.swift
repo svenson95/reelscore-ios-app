@@ -58,7 +58,7 @@ struct OverviewDatePickerOverlay: View {
         }
         .padding()
         .frame(maxWidth: 360)
-        .background(Color(.systemBackground))
+        .background(Color(.secondarySystemBackground))
         .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
         .shadow(radius: 24)
         .padding(.horizontal, 16)
