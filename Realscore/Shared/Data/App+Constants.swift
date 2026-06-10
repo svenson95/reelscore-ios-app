@@ -14,4 +14,7 @@ enum Constants {
     static let lastRealWeekdayIndex = 7
     static let previousWeekEdgeIndex = 0
     static let nextWeekEdgeIndex = 8
+    
+    static let DATA_START_DATE = "2023-07-28"
+    static let DATA_END_DATE = "2026-09-01"
 }

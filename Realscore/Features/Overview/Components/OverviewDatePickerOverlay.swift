@@ -25,19 +25,9 @@ struct OverviewDatePickerOverlay: View {
     }
 
     var body: some View {
-        ZStack {
-            backdrop
-            pickerCard
-        }
-        .transition(.opacity.combined(with: .scale(scale: 0.96)))
-    }
-
-    private var backdrop: some View {
-        Color.black.opacity(0.35)
-            .ignoresSafeArea()
-            .onTapGesture {
-                onDismiss()
-            }
+        pickerCard
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(Color.clear)
     }
 
     private var pickerCard: some View {
@@ -47,7 +37,8 @@ struct OverviewDatePickerOverlay: View {
             DatePicker(
                 "Datum auswählen",
                 selection: $draftDate,
-                displayedComponents: .date,
+                in: dateRange,
+                displayedComponents: .date
             )
             .datePickerStyle(.graphical)
             .labelsHidden()
@@ -78,7 +69,7 @@ struct OverviewDatePickerOverlay: View {
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(.secondary)
                     .padding(8)
-                    .background(Color(.secondarySystemBackground))
+                    .background(Color(.tertiarySystemBackground))
                     .clipShape(Circle())
             }
             .buttonStyle(.plain)
@@ -97,9 +88,28 @@ struct OverviewDatePickerOverlay: View {
             Button("Übernehmen") {
                 selectedDate = draftDate
                 onSelectDate(draftDate)
-                onDismiss()
             }
             .buttonStyle(.borderedProminent)
         }
+    }
+    
+    private var dateRange: ClosedRange<Date> {
+        let calendar = Calendar.appCalendar
+
+        let startParts = Constants.DATA_START_DATE.split(separator: "-").compactMap { Int($0) }
+        let minDate = calendar.date(from: DateComponents(
+            year: startParts[0],
+            month: startParts[1],
+            day: startParts[2]
+        ))!
+
+        let endParts = Constants.DATA_END_DATE.split(separator: "-").compactMap { Int($0) }
+        let maxDate = calendar.date(from: DateComponents(
+            year: endParts[0],
+            month: endParts[1],
+            day: endParts[2]
+        ))!
+
+        return minDate...maxDate
     }
 }

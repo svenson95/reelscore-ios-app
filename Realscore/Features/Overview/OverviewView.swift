@@ -28,8 +28,18 @@ struct OverviewView: View {
                     }
             }
         }
-        .overlay {
-            datePickerOverlay
+        .disabled(isDatePickerPresented)
+        .fullScreenCover(isPresented: $isDatePickerPresented) {
+            OverviewDatePickerOverlay(
+                selectedDate: $datePickerSelection,
+                onSelectDate: { date in
+                    selectDate(date)
+                },
+                onDismiss: {
+                    isDatePickerPresented = false
+                }
+            )
+            .presentationBackground(.clear)
         }
         .animation(.easeInOut(duration: 0.2), value: isDatePickerPresented)
         .navigationTitle("Überblick")
@@ -62,7 +72,6 @@ struct OverviewView: View {
         .navigationDestination(item: $selectedFixture) { fixture in
             MatchView(fixture: fixture)
         }
-        .disabled(isDatePickerPresented)
     }
 
     private var overviewPager: some View {
@@ -105,23 +114,6 @@ struct OverviewView: View {
             .background(.clear)
         }
     }
-
-    @ViewBuilder
-    private var datePickerOverlay: some View {
-        if isDatePickerPresented {
-            OverviewDatePickerOverlay(
-                selectedDate: $datePickerSelection,
-                onSelectDate: { date in
-                    selectDate(date)
-                },
-                onDismiss: {
-                    withAnimation(.easeInOut(duration: 0.2)) {
-                        isDatePickerPresented = false
-                    }
-                }
-            )
-        }
-    }
     
     private func refreshOverview() async {
         guard !selectionStore.isSwitchingWeek else { return }
@@ -135,9 +127,7 @@ struct OverviewView: View {
     }
 
     private func selectDate(_ date: Date) {
-        withAnimation(.easeInOut(duration: 0.2)) {
-            isDatePickerPresented = false
-        }
+        isDatePickerPresented = false
 
         Task {
             await selectionStore.selectDate(
