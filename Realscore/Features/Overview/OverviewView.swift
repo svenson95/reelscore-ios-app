@@ -17,99 +17,92 @@ struct OverviewView: View {
         selectionStore.dayBinding(viewModel: viewModel)
     }
 
-    private var tabViewID: String {
-        "\(viewModel.visibleWeekStart.apiDateString)-\(viewModel.refreshID)"
-    }
-
     var body: some View {
-        content
-            .overlay {
-                loadingOverlay
-            }
-            .overlay {
-                datePickerOverlay
-            }
-            .animation(.easeInOut(duration: 0.2), value: isDatePickerPresented)
-            .navigationTitle("Überblick")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                OverviewToolbar(
-                    dateText: selectionStore.selectedDateText,
-                    showsTodayButton: !selectionStore.isTodaySelected,
-                    onDateTap: {
-                        showDatePicker()
-                    },
-                    onToday: {
-                        Task {
-                            await selectionStore.selectToday(viewModel: viewModel)
-                        }
+        Group {
+            if viewModel.isLoading && !viewModel.didLoadInitialData {
+                ProgressView()
+            } else {
+                overviewPager
+                    .safeAreaInset(edge: .top, spacing: 0) {
+                        weekdayPickerBar
                     }
-                )
             }
-            .task {
-                selectionStore.selectInitialDayIfNeeded(viewModel: viewModel)
-                await viewModel.loadOverviewIfNeeded()
-                selectionStore.selectInitialDayIfNeeded(viewModel: viewModel)
-            }
-            .refreshable {
-                guard !selectionStore.isSwitchingWeek else { return }
-                await viewModel.refreshVisibleWeek()
-            }
-            .onDisappear {
-                selectionStore.cancelPendingTask()
-            }
-            .navigationDestination(item: $selectedFixture) { fixture in
-                MatchView(fixture: fixture)
-            }
-    }
-
-    private var content: some View {
-        VStack(spacing: 0) {
-            weekdayPicker
-
-            TabView(selection: selectedDayBinding) {
-                ForEach(viewModel.weekDates.indices, id: \.self) { index in
-                    OverviewTabView(
-                        fixtures: viewModel.fixturesForDay(at: index),
-                        errorMessage: viewModel.errorMessage,
-                        isLoading: viewModel.isLoading,
-                        didLoadInitialData: viewModel.didLoadInitialData,
-                        canReload: !selectionStore.isSwitchingWeek,
-                        onFixtureTap: { fixture in
-                            selectedFixture = fixture
-                        },
-                        onReload: {
-                            await viewModel.refreshVisibleWeek()
-                        }
-                    )
-                    .tag(index)
+        }
+        .overlay {
+            datePickerOverlay
+        }
+        .animation(.easeInOut(duration: 0.2), value: isDatePickerPresented)
+        .navigationTitle("Überblick")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            OverviewToolbar(
+                dateText: selectionStore.selectedDateText,
+                showsTodayButton: !selectionStore.isTodaySelected,
+                onDateTap: {
+                    showDatePicker()
+                },
+                onToday: {
+                    Task {
+                        await selectionStore.selectToday(viewModel: viewModel)
+                    }
                 }
-            }
-            .id(tabViewID)
-            .tabViewStyle(.page(indexDisplayMode: .never))
-            .disabled(selectionStore.isSwitchingWeek)
-            .ignoresSafeArea(.container, edges: .bottom)
-            .onChange(of: viewModel.weekDates) { _, weekDates in
-                selectionStore.handleWeekDatesChange(weekDates)
-            }
+            )
+        }
+        .task {
+            selectionStore.selectInitialDayIfNeeded(viewModel: viewModel)
+            await viewModel.loadOverviewIfNeeded()
+            selectionStore.selectInitialDayIfNeeded(viewModel: viewModel)
+        }
+        .onDisappear {
+            selectionStore.cancelPendingTask()
+        }
+        .onChange(of: viewModel.weekDates) { _, weekDates in
+            selectionStore.handleWeekDatesChange(weekDates)
+        }
+        .navigationDestination(item: $selectedFixture) { fixture in
+            MatchView(fixture: fixture)
         }
         .disabled(isDatePickerPresented)
     }
 
-    @ViewBuilder
-    private var loadingOverlay: some View {
-        if viewModel.isLoading && !viewModel.didLoadInitialData {
-            LoadingView()
+    private var overviewPager: some View {
+        OverviewHorizontalPager(
+            pageIDs: Array(viewModel.weekDates.indices),
+            selectedPage: selectedDayBinding,
+            isDisabled: selectionStore.isSwitchingWeek || viewModel.weekDates.isEmpty
+        ) { index in
+            overviewList(for: index)
+        }
+    }
+
+    private func overviewList(for index: Int) -> some View {
+        List {
+            OverviewContentView(
+                fixtures: viewModel.fixturesForDay(at: index),
+                errorMessage: viewModel.errorMessage,
+                isLoading: viewModel.isLoading,
+                didLoadInitialData: viewModel.didLoadInitialData,
+                onRetry: {
+                    await refreshOverview()
+                },
+                onFixtureTap: { fixture in
+                    selectedFixture = fixture
+                }
+            )
+        }
+        .refreshable {
+            await refreshOverview()
         }
     }
 
     @ViewBuilder
-    private var weekdayPicker: some View {
+    private var weekdayPickerBar: some View {
         if !viewModel.weekDates.isEmpty {
             OverviewWeekdayPickerView(
                 weekDates: viewModel.weekDates,
                 selectedDayIndex: selectedDayBinding
             )
+            .background(.clear)
         }
     }
 
@@ -128,6 +121,12 @@ struct OverviewView: View {
                 }
             )
         }
+    }
+    
+    private func refreshOverview() async {
+        guard !selectionStore.isSwitchingWeek else { return }
+
+        await viewModel.refreshVisibleWeek()
     }
 
     private func showDatePicker() {
