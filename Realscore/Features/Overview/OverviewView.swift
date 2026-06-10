@@ -23,8 +23,6 @@ struct OverviewView: View {
 
     var body: some View {
         content
-            .background(Color(.systemGroupedBackground))
-            .scrollContentBackground(.hidden)
             .overlay {
                 loadingOverlay
             }
@@ -71,13 +69,26 @@ struct OverviewView: View {
 
             TabView(selection: selectedDayBinding) {
                 ForEach(viewModel.weekDates.indices, id: \.self) { index in
-                    tabView(for: index)
-                        .tag(index)
+                    OverviewTabView(
+                        fixtures: viewModel.fixturesForDay(at: index),
+                        errorMessage: viewModel.errorMessage,
+                        isLoading: viewModel.isLoading,
+                        didLoadInitialData: viewModel.didLoadInitialData,
+                        canReload: !selectionStore.isSwitchingWeek,
+                        onFixtureTap: { fixture in
+                            selectedFixture = fixture
+                        },
+                        onReload: {
+                            await viewModel.refreshVisibleWeek()
+                        }
+                    )
+                    .tag(index)
                 }
             }
             .id(tabViewID)
             .tabViewStyle(.page(indexDisplayMode: .never))
             .disabled(selectionStore.isSwitchingWeek)
+            .ignoresSafeArea(.container, edges: .bottom)
             .onChange(of: viewModel.weekDates) { _, weekDates in
                 selectionStore.handleWeekDatesChange(weekDates)
             }
@@ -100,22 +111,6 @@ struct OverviewView: View {
                 selectedDayIndex: selectedDayBinding
             )
         }
-    }
-
-    private func tabView(for index: Int) -> some View {
-        OverviewTabView(
-            fixtures: viewModel.fixturesForDay(at: index),
-            errorMessage: viewModel.errorMessage,
-            isLoading: viewModel.isLoading,
-            didLoadInitialData: viewModel.didLoadInitialData,
-            canReload: !selectionStore.isSwitchingWeek,
-            onFixtureTap: { fixture in
-                selectedFixture = fixture
-            },
-            onReload: {
-                await viewModel.refreshVisibleWeek()
-            }
-        )
     }
 
     @ViewBuilder
