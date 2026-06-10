@@ -22,7 +22,7 @@ struct MainView: View {
                     OverviewView()
                 }
             } label: {
-                Label("Überblick", systemImage: "list.bullet")
+                Label("Überblick", systemImage: "figure.indoor.soccer")
             }
 
             Tab(value: MainTab.standings) {
@@ -30,7 +30,7 @@ struct MainView: View {
                     StandingsView()
                 }
             } label: {
-                Label("Tabellen", systemImage: "tablecells")
+                Label("Tabellen", systemImage: "list.bullet")
             }
 
             Tab(value: MainTab.competitions) {
