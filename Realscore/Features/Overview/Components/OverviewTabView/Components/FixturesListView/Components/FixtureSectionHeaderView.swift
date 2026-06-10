@@ -12,12 +12,10 @@ struct FixtureSectionHeaderView: View {
         HStack(spacing: 12) {
             CompetitionLogoView(
                 competitionId: group.competitionId,
-                size: FixtureSectionHeaderStyle.logoSize
+                size: 24
             )
-
+            
             Text(group.competition)
-                .font(.default)
-                .fontWeight(.semibold)
                 .lineLimit(1)
 
             Spacer()
@@ -27,10 +25,6 @@ struct FixtureSectionHeaderView: View {
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
         }
-        .textCase(nil)
+        .padding(.vertical, 4)
     }
-}
-
-private enum FixtureSectionHeaderStyle {
-    static let logoSize: CGFloat = 14
 }

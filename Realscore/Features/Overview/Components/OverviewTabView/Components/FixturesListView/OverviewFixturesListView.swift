@@ -92,6 +92,9 @@ struct OverviewFixturesListView: View {
                 }
             } header: {
                 FixtureSectionHeaderView(group: group)
+                    .foregroundColor(.primary)
+                    .fontWeight(.light)
+                    .textCase(nil)
             }
         }
     }
