@@ -12,6 +12,7 @@ struct OverviewHorizontalPager<Content: View>: View {
     @ViewBuilder let content: (Int) -> Content
 
     @State private var isHorizontalPaging = false
+    @State private var previousPage: Int?
 
     private var scrollPosition: Binding<Int?> {
         Binding<Int?>(
@@ -62,8 +63,12 @@ struct OverviewHorizontalPager<Content: View>: View {
                         isHorizontalPaging = false
                     }
             )
-            .onChange(of: selectedPage) {
+            .onAppear {
+                previousPage = selectedPage
+            }
+            .onChange(of: selectedPage) { oldValue, newValue in
                 isHorizontalPaging = false
+                previousPage = newValue
             }
         }
     }

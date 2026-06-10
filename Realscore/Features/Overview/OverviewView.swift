@@ -16,6 +16,23 @@ struct OverviewView: View {
     private var selectedDayBinding: Binding<Int> {
         selectionStore.dayBinding(viewModel: viewModel)
     }
+    
+    private var animatedSelectedDayBinding: Binding<Int> {
+        Binding(
+            get: {
+                selectedDayBinding.wrappedValue
+            },
+            set: { newIndex in
+                let oldIndex = selectedDayBinding.wrappedValue
+
+                guard oldIndex != newIndex else { return }
+
+                withAnimation(.snappy) {
+                    selectedDayBinding.wrappedValue = newIndex
+                }
+            }
+        )
+    }
 
     var body: some View {
         Group {
@@ -109,7 +126,7 @@ struct OverviewView: View {
         if !viewModel.weekDates.isEmpty {
             OverviewWeekdayPickerView(
                 weekDates: viewModel.weekDates,
-                selectedDayIndex: selectedDayBinding
+                selectedDayIndex: animatedSelectedDayBinding
             )
             .background(.clear)
         }
