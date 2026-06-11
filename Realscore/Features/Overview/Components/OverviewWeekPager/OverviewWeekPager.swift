@@ -52,8 +52,8 @@ struct OverviewWeekPager<PageContent: View>: View {
         )
     }
 
-    private var progressMapper: OverviewWeekPagerProgressMapper {
-        OverviewWeekPagerProgressMapper(
+    private var progressMapper: PagerProgressMapper {
+        PagerProgressMapper(
             visiblePageCount: visibleWeekDates.count,
             firstVisiblePageIndex: Constants.firstRealWeekdayIndex
         )
@@ -106,13 +106,14 @@ struct OverviewWeekPager<PageContent: View>: View {
     @ViewBuilder
     private var weekdayPickerBar: some View {
         if !visibleWeekDates.isEmpty {
-            OverviewWeekdayPickerView(
-                weekDates: visibleWeekDates,
+            HorizontalPagerBar(
+                itemCount: visibleWeekDates.count,
                 selectedIndex: selectedVisibleDayIndex,
                 tabProgress: weekdayTabProgress,
                 onSelectIndex: selectVisibleDayIndex
-            )
-            .background(.clear)
+            ) { index in
+                Text(visibleWeekDates[index].weekdayString)
+            }
         }
     }
 

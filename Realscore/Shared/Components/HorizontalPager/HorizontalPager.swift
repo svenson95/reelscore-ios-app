@@ -88,3 +88,68 @@ struct HorizontalPager<PageID: Hashable, Content: View>: View {
         onScrollProgress(clampedPageProgress)
     }
 }
+
+struct OffsetKey: PreferenceKey {
+    static var defaultValue: CGFloat = .zero
+
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = nextValue()
+    }
+}
+
+extension View {
+    @ViewBuilder
+    func offsetX(completion: @escaping (CGFloat) -> Void) -> some View {
+        self
+            .overlay {
+                GeometryReader { proxy in
+                    let minX = proxy.frame(in: .scrollView(axis: .horizontal)).minX
+                    
+                    Color.clear
+                        .preference(key: OffsetKey.self, value: minX)
+                        .onPreferenceChange(OffsetKey.self, perform: completion)
+                }
+            }
+    }
+}
+
+extension View {
+    @ViewBuilder
+    func pagerMask(
+        pageProgress: CGFloat,
+        itemCount: Int
+    ) -> some View {
+        ZStack {
+            self
+                .foregroundStyle(.secondary)
+
+            self
+                .foregroundStyle(.accent)
+                .mask {
+                    GeometryReader { proxy in
+                        let size = proxy.size
+                        let capsuleWidth = capsuleWidth(
+                            totalWidth: size.width,
+                            itemCount: itemCount
+                        )
+                        let travelDistance = max(size.width - capsuleWidth, 0)
+
+                        Capsule()
+                            .frame(width: capsuleWidth)
+                            .offset(
+                                x: pageProgress * travelDistance
+                            )
+                    }
+                }
+        }
+    }
+
+    private func capsuleWidth(
+        totalWidth: CGFloat,
+        itemCount: Int
+    ) -> CGFloat {
+        guard itemCount > 0 else { return 0 }
+
+        return totalWidth / CGFloat(itemCount)
+    }
+}

@@ -1,11 +1,11 @@
 //
-//  OverviewWeekPagerProgressMapper.swift
+//  PagerProgressMapper.swift
 //  Realscore
 //
 
 import Foundation
 
-struct OverviewWeekPagerProgressMapper {
+struct PagerProgressMapper {
     let visiblePageCount: Int
     let firstVisiblePageIndex: Int
 
