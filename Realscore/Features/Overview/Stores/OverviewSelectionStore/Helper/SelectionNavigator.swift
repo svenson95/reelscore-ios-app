@@ -14,7 +14,11 @@ struct OverviewSelectionNavigator {
             return nil
         }
 
-        return OverviewSelectionRules.realWeekdayIndex(for: index)
+        guard !OverviewSelectionRules.isEdgeIndex(index) else {
+            return nil
+        }
+
+        return index
     }
 
     func indexForLoadedDate(
@@ -25,7 +29,11 @@ struct OverviewSelectionNavigator {
             return Constants.firstRealWeekdayIndex
         }
 
-        return OverviewSelectionRules.realWeekdayIndex(for: index)
+        guard !OverviewSelectionRules.isEdgeIndex(index) else {
+            return Constants.firstRealWeekdayIndex
+        }
+
+        return index
     }
 
     func indexForChangedWeekDates(
@@ -33,11 +41,12 @@ struct OverviewSelectionNavigator {
         tabIndex: Int,
         weekDates: [Date]
     ) -> Int {
-        if let matchingIndex = OverviewSelectionRules.indexOf(selectedDate, in: weekDates) {
+        if let matchingIndex = OverviewSelectionRules.indexOf(selectedDate, in: weekDates),
+           !OverviewSelectionRules.isEdgeIndex(matchingIndex) {
             return matchingIndex
         }
 
-        return OverviewSelectionRules.safeIndex(
+        return OverviewSelectionRules.safeVisibleIndex(
             tabIndex,
             in: weekDates
         )

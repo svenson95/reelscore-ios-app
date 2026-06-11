@@ -37,6 +37,7 @@ final class OverviewSelectionStore: ObservableObject {
     func cancelPendingTask() {
         pendingTask?.cancel()
         pendingTask = nil
+        isSwitchingWeek = false
     }
 
     func selectInitialDayIfNeeded(viewModel: OverviewViewModel) {
@@ -99,21 +100,39 @@ final class OverviewSelectionStore: ObservableObject {
         viewModel: OverviewViewModel
     ) {
         guard viewModel.weekDates.indices.contains(index) else { return }
+
+        if OverviewSelectionRules.isEdgeIndex(index) {
+            beginWeekSwitch(from: index, viewModel: viewModel)
+            return
+        }
+
         guard !isSwitchingWeek else { return }
 
         cancelPendingTask()
         commit(index, in: viewModel.weekDates)
+    }
 
-        guard OverviewSelectionRules.isEdgeIndex(index) else {
-            return
-        }
+    private func beginWeekSwitch(
+        from edgeIndex: Int,
+        viewModel: OverviewViewModel
+    ) {
+        guard !isSwitchingWeek else { return }
+        guard pendingTask == nil else { return }
+        guard viewModel.weekDates.indices.contains(edgeIndex) else { return }
+        guard OverviewSelectionRules.isEdgeIndex(edgeIndex) else { return }
+
+        isSwitchingWeek = true
 
         pendingTask = Task { @MainActor in
             defer {
+                isSwitchingWeek = false
                 pendingTask = nil
             }
 
-            await switchWeek(from: index, viewModel: viewModel)
+            await switchWeek(
+                from: edgeIndex,
+                viewModel: viewModel
+            )
         }
     }
 
@@ -154,43 +173,61 @@ final class OverviewSelectionStore: ObservableObject {
         isSwitchingWeek = true
         defer { isSwitchingWeek = false }
 
-        let didLoad = await loadWeek()
-        guard didLoad else { return }
+        let normalizedDate = WeekDateHelper.day(for: date)
+
+        viewModel.prepareWeek(containing: normalizedDate)
 
         let index = navigator.indexForLoadedDate(
-            date,
+            normalizedDate,
             weekDates: viewModel.weekDates
         )
 
         commit(index, in: viewModel.weekDates)
+
+        let didLoad = await loadWeek()
+        guard didLoad else { return }
+        guard !Task.isCancelled else { return }
     }
 
     private func switchWeek(
         from edgeIndex: Int,
         viewModel: OverviewViewModel
     ) async {
-        guard !isSwitchingWeek else { return }
-        guard OverviewSelectionRules.isEdgeIndex(edgeIndex) else { return }
+        let oldWeekDates = viewModel.weekDates
+        let fallbackIndex = selectedDayIndex
 
-        isSwitchingWeek = true
-        defer { isSwitchingWeek = false }
+        guard oldWeekDates.indices.contains(edgeIndex) else { return }
 
-        let didLoad = await viewModel.loadWeek(containing: selectedDate)
+        let targetDate = WeekDateHelper.day(for: oldWeekDates[edgeIndex])
+        let targetIndex = targetIndexAfterWeekSwitch(from: edgeIndex)
+        let didLoad = await viewModel.loadWeek(containing: targetDate)
+
+        guard !Task.isCancelled else { return }
+
         guard didLoad else {
-            commit(selectedDayIndex, in: viewModel.weekDates)
+            commit(fallbackIndex, in: viewModel.weekDates)
             return
         }
-
-        let targetIndex = navigator.indexForLoadedDate(
-            selectedDate,
-            weekDates: viewModel.weekDates
-        )
 
         commit(targetIndex, in: viewModel.weekDates)
     }
 
+    private func targetIndexAfterWeekSwitch(from edgeIndex: Int) -> Int {
+        switch edgeIndex {
+        case Constants.previousWeekEdgeIndex:
+            return Constants.lastRealWeekdayIndex
+
+        case Constants.nextWeekEdgeIndex:
+            return Constants.firstRealWeekdayIndex
+
+        default:
+            return Constants.firstRealWeekdayIndex
+        }
+    }
+
     private func commit(_ index: Int, in weekDates: [Date]) {
         guard weekDates.indices.contains(index) else { return }
+        guard !OverviewSelectionRules.isEdgeIndex(index) else { return }
 
         tabIndex = index
         selectedDayIndex = index

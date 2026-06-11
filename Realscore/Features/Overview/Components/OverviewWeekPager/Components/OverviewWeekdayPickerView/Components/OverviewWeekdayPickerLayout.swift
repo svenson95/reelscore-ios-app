@@ -8,8 +8,7 @@ import Foundation
 enum OverviewWeekdayPickerLayout {
     static let spacing: CGFloat = 0
     static let outerPadding: CGFloat = 4
-    static let height: CGFloat = 52
-    static let buttonHeight: CGFloat = 44
+    static let height: CGFloat = 40
     static let horizontalPadding: CGFloat = 16
     static let bottomPadding: CGFloat = 16
 

@@ -32,11 +32,20 @@ enum OverviewSelectionRules {
             ? index
             : Constants.firstRealWeekdayIndex
     }
+    
+    static func safeVisibleIndex(
+        _ index: Int,
+        in weekDates: [Date]
+    ) -> Int {
+        guard weekDates.indices.contains(index) else {
+            return Constants.firstRealWeekdayIndex
+        }
 
-    static func realWeekdayIndex(for index: Int) -> Int {
-        isEdgeIndex(index)
-            ? Constants.firstRealWeekdayIndex
-            : index
+        guard !isEdgeIndex(index) else {
+            return Constants.firstRealWeekdayIndex
+        }
+
+        return index
     }
 
     static func isEdgeIndex(_ index: Int) -> Bool {

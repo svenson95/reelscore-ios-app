@@ -21,16 +21,21 @@ struct OverviewContentView: View {
         fixtures.groupedByCompetitionAndRound()
     }
 
+    private var shouldShowLoadingState: Bool {
+        isRetrying || (isLoading && !didLoadInitialData)
+    }
+
     private var shouldShowEmptyState: Bool {
-        fixtures.isEmpty && !isLoading && !isRetrying && didLoadInitialData
+        fixtures.isEmpty && !shouldShowLoadingState && errorMessage == nil && didLoadInitialData
     }
 
     private var showsRetryLoading: Bool {
-        isRetrying || isLoading
+        isRetrying
     }
 
     var body: some View {
         errorSection
+        loadingSection
         emptySection
         fixtureSections
     }
@@ -43,6 +48,22 @@ struct OverviewContentView: View {
                 isRetrying: showsRetryLoading
             ) {
                 retry()
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var loadingSection: some View {
+        if shouldShowLoadingState {
+            Section {
+                HStack {
+                    Spacer()
+                    ProgressView()
+                    Spacer()
+                }
+                .frame(minHeight: 220)
+                .listRowSeparator(.hidden)
+                .listRowBackground(Color.clear)
             }
         }
     }

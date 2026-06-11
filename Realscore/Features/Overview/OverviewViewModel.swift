@@ -35,9 +35,7 @@ final class OverviewViewModel: ObservableObject {
     }
 
     var todayWeekdayIndex: Int {
-        weekdayItems.firstIndex {
-            Calendar.appCalendar.isDateInToday($0.date)
-        } ?? -1
+        WeekDateHelper.realWeekdayIndex(for: Date())
     }
 
     func loadOverviewIfNeeded() async {
@@ -70,6 +68,22 @@ final class OverviewViewModel: ObservableObject {
         }
 
         return weekdayItems[index].fixtures
+    }
+    
+    func prepareWeek(containing date: Date) {
+        let selectedDate = WeekDateHelper.day(for: date)
+        let newStart = WeekDateHelper.start(for: selectedDate)
+
+        guard !Calendar.appCalendar.isDate(newStart, inSameDayAs: visibleWeekStart) else {
+            return
+        }
+
+        weekStart = newStart
+        visibleWeekStart = newStart
+        weekdayItems = WeekdayItemFactory.empty(from: newStart)
+
+        errorMessage = nil
+        refreshID = UUID()
     }
 
     @discardableResult

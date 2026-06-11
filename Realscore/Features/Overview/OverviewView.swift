@@ -16,23 +16,6 @@ struct OverviewView: View {
     private var selectedDayBinding: Binding<Int> {
         selectionStore.dayBinding(viewModel: viewModel)
     }
-    
-    private var animatedSelectedDayBinding: Binding<Int> {
-        Binding(
-            get: {
-                selectedDayBinding.wrappedValue
-            },
-            set: { newIndex in
-                let oldIndex = selectedDayBinding.wrappedValue
-
-                guard oldIndex != newIndex else { return }
-
-                withAnimation(.snappy) {
-                    selectedDayBinding.wrappedValue = newIndex
-                }
-            }
-        )
-    }
 
     var body: some View {
         Group {
@@ -40,9 +23,6 @@ struct OverviewView: View {
                 ProgressView()
             } else {
                 overviewPager
-                    .safeAreaInset(edge: .top, spacing: 0) {
-                        weekdayPickerBar
-                    }
             }
         }
         .disabled(isDatePickerPresented)
@@ -83,19 +63,20 @@ struct OverviewView: View {
         .onDisappear {
             selectionStore.cancelPendingTask()
         }
-        .onChange(of: viewModel.weekDates) { _, weekDates in
-            selectionStore.handleWeekDatesChange(weekDates)
-        }
         .navigationDestination(item: $selectedFixture) { fixture in
             MatchView(fixture: fixture)
         }
     }
 
     private var overviewPager: some View {
-        OverviewHorizontalPager(
-            pageIDs: Array(viewModel.weekDates.indices),
-            selectedPage: selectedDayBinding,
-            isDisabled: selectionStore.isSwitchingWeek || viewModel.weekDates.isEmpty
+        OverviewWeekPager(
+            selectedIndex: selectedDayBinding.wrappedValue,
+            onSelectIndex: { index in
+                selectedDayBinding.wrappedValue = index
+            },
+            weekDates: viewModel.weekDates,
+            isSwitchingWeek: selectionStore.isSwitchingWeek,
+            isDisabled: selectionStore.isSwitchingWeek
         ) { index in
             overviewList(for: index)
         }
@@ -116,22 +97,13 @@ struct OverviewView: View {
                 }
             )
         }
+        .scrollContentBackground(.hidden)
+        .background(Color(.systemGroupedBackground))
         .refreshable {
             await refreshOverview()
         }
     }
 
-    @ViewBuilder
-    private var weekdayPickerBar: some View {
-        if !viewModel.weekDates.isEmpty {
-            OverviewWeekdayPickerView(
-                weekDates: viewModel.weekDates,
-                selectedDayIndex: animatedSelectedDayBinding
-            )
-            .background(.clear)
-        }
-    }
-    
     private func refreshOverview() async {
         guard !selectionStore.isSwitchingWeek else { return }
 
@@ -153,4 +125,8 @@ struct OverviewView: View {
             )
         }
     }
+}
+
+#Preview {
+    OverviewView()
 }
