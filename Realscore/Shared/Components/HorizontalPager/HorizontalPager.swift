@@ -5,6 +5,10 @@
 
 import SwiftUI
 
+enum PagerLayout {
+    static let CAPSULE_INSET: CGFloat = 8
+}
+
 struct HorizontalPager<PageID: Hashable, Content: View>: View {
     let pageIDs: [PageID]
     let isDisabled: Bool
@@ -127,18 +131,21 @@ extension View {
                 .foregroundStyle(.accent)
                 .mask {
                     GeometryReader { proxy in
-                        let size = proxy.size
+                        let width = proxy.size.width
                         let capsuleWidth = capsuleWidth(
-                            totalWidth: size.width,
+                            totalWidth: width,
                             itemCount: itemCount
                         )
-                        let travelDistance = max(size.width - capsuleWidth, 0)
+                        let travelDistance = max(width - capsuleWidth, 0)
+                        let safeProgress = safeProgress(pageProgress)
 
-                        Capsule()
-                            .frame(width: capsuleWidth)
-                            .offset(
-                                x: pageProgress * travelDistance
-                            )
+                        if capsuleWidth > 0, width > 0 {
+                            Capsule()
+                                .frame(width: capsuleWidth)
+                                .offset(
+                                    x: safeProgress * travelDistance
+                                )
+                        }
                     }
                 }
         }
@@ -149,7 +156,17 @@ extension View {
         itemCount: Int
     ) -> CGFloat {
         guard itemCount > 0 else { return 0 }
+        guard totalWidth.isFinite, totalWidth > 0 else { return 0 }
 
-        return totalWidth / CGFloat(itemCount)
+        let itemWidth = totalWidth / CGFloat(itemCount)
+        let capsuleWidth = itemWidth - PagerLayout.CAPSULE_INSET
+
+        return max(capsuleWidth, 0)
+    }
+
+    private func safeProgress(_ progress: CGFloat) -> CGFloat {
+        guard progress.isFinite else { return 0 }
+
+        return min(max(progress, 0), 1)
     }
 }

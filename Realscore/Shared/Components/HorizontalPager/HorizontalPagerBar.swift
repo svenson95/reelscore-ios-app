@@ -51,12 +51,14 @@ struct HorizontalPagerBar<Item: View>: View {
 
     var body: some View {
         GlassEffectContainer {
-            GeometryReader { proxy in
-                content(width: proxy.size.width)
+            if itemCount > 0 {
+                GeometryReader { proxy in
+                    content(width: proxy.size.width)
+                }
+                .frame(height: HorizontalPagerBarLayout.height)
+                .padding(.horizontal, HorizontalPagerBarLayout.horizontalPadding)
+                .padding(.bottom, HorizontalPagerBarLayout.bottomPadding)
             }
-            .frame(height: HorizontalPagerBarLayout.height)
-            .padding(.horizontal, HorizontalPagerBarLayout.horizontalPadding)
-            .padding(.bottom, HorizontalPagerBarLayout.bottomPadding)
         }
     }
 
@@ -98,9 +100,11 @@ struct HorizontalPagerBar<Item: View>: View {
 
     private func movingSelectionCapsule(width: CGFloat) -> some View {
         let baseCapsuleWidth = capsuleWidth(totalWidth: width)
-        let inset: CGFloat = 8
-        let visibleCapsuleWidth = max(baseCapsuleWidth - inset, 0)
-        let visibleCapsuleHeight = max(baseCapsuleWidth - inset, 0)
+        let horizontalInset: CGFloat = PagerLayout.CAPSULE_INSET
+        let verticalInset: CGFloat = PagerLayout.CAPSULE_INSET
+
+        let visibleCapsuleWidth = max(baseCapsuleWidth - horizontalInset, 0)
+        let visibleCapsuleHeight = max(HorizontalPagerBarLayout.height - verticalInset, 0)
         let travelDistance = max(width - baseCapsuleWidth, 0)
 
         return Capsule()

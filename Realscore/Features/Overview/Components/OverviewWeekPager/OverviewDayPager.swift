@@ -1,11 +1,11 @@
 //
-//  OverviewWeekPager.swift
+//  OverviewDayPager.swift
 //  Realscore
 //
 
 import SwiftUI
 
-struct OverviewWeekPager<PageContent: View>: View {
+struct OverviewDayPager<PageContent: View>: View {
     let selectedIndex: Int
     let onSelectIndex: (Int) -> Void
 

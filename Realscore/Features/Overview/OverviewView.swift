@@ -69,7 +69,7 @@ struct OverviewView: View {
     }
 
     private var overviewPager: some View {
-        OverviewWeekPager(
+        OverviewDayPager(
             selectedIndex: selectedDayBinding.wrappedValue,
             onSelectIndex: { index in
                 selectedDayBinding.wrappedValue = index
