@@ -31,10 +31,6 @@ struct Fixture: Identifiable, Codable, Hashable {
         return fixture.id.hashValue
     }
 
-    var displayName: String {
-        "\(teams.home.name.teamName()) - \(teams.away.name.teamName())"
-    }
-
     var kickoffDate: String {
         fixture.date
     }
