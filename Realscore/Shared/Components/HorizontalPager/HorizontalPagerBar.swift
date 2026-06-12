@@ -94,8 +94,8 @@ struct HorizontalPagerBar<Item: View>: View {
 
     private var selectionCapsuleColor: Color {
         scheme == .dark
-        ? Color.white.opacity(0.10)
-        : Color.gray.opacity(0.16)
+        ? Color.white.opacity(0.18)
+        : Color.gray.opacity(0.1)
     }
 
     private func movingSelectionCapsule(width: CGFloat) -> some View {

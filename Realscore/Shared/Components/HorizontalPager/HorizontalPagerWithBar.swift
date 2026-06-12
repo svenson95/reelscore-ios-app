@@ -106,7 +106,6 @@ struct HorizontalPagerWithBar<PageID: Hashable, BarItem: View, PageContent: View
             let targetProgress = CGFloat(pendingProgrammaticIndex)
             let distanceToTarget = abs(progress - targetProgress)
 
-            // Alte Offset-Werte vom vorherigen Tab ignorieren.
             guard distanceToTarget < 0.05 else {
                 return
             }
