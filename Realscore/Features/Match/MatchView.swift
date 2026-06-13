@@ -20,12 +20,12 @@ struct MatchView: View {
             content
 
             MatchHeaderView(fixture: viewModel.fixture)
-                .background(Color(.systemGroupedBackground))
                 .readHeight { height in
                     guard abs(headerHeight - height) > 0.5 else { return }
                     headerHeight = height
                 }
                 .zIndex(1)
+                .padding(.horizontal, 16)
         }
         .navigationTitle("Partie")
         .navigationBarTitleDisplayMode(.inline)
@@ -35,7 +35,7 @@ struct MatchView: View {
         HorizontalPagerWithBar(
             pageIDs: MatchTab.allCases,
             selectedPage: $selectedTab,
-            barTopSpacing: headerHeight
+            barTopSpacing: headerHeight + 10
         ) { tab in
             tabBarItem(tab)
         } pageContent: { tab in

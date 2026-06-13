@@ -8,7 +8,33 @@ import SwiftUI
 struct MatchHeaderView: View {
     let fixture: Fixture
 
+    @StateObject private var venueImageLoader = VenueImageLoader()
+
+    private var venueId: VenueId {
+        VenueIds.mappedVenueId(forTeamId: fixture.teams.home.id)
+            ?? VenueIds.DEFAULT_VALUE
+    }
+
     var body: some View {
+        headerContent
+            .frame(maxWidth: .infinity)
+            .padding(.bottom, 14)
+            .padding(.horizontal, 12)
+            .foregroundColor(.primary)
+            .background {
+                venueBackground
+            }
+            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .stroke(.primary.opacity(0.08), lineWidth: 1)
+            }
+            .task(id: venueId) {
+                venueImageLoader.loadVenueImage(for: venueId)
+            }
+    }
+
+    private var headerContent: some View {
         HStack(spacing: 6) {
             Spacer()
 
@@ -20,10 +46,28 @@ struct MatchHeaderView: View {
 
             Spacer()
         }
-        .frame(maxWidth: .infinity)
-        .padding(.bottom, 14)
-        .padding(.horizontal, 12)
-        .foregroundColor(.primary)
+    }
+
+    private var venueBackground: some View {
+        ZStack {
+            Rectangle()
+                .fill(.ultraThinMaterial)
+
+            if let image = venueImageLoader.image,
+               venueImageLoader.hasValidVenueBackground {
+                Image(uiImage: image)
+                    .resizable()
+                    .scaledToFill()
+                    .opacity(venueImageLoader.isLoaded ? 0.2 : 0)
+                    .transition(.opacity)
+            }
+        }
+        .clipped()
+        .animation(
+            .easeInOut(duration: 0.15),
+            value: venueImageLoader.isLoaded
+        )
+        .allowsHitTesting(false)
     }
 
     var teamsString: String {

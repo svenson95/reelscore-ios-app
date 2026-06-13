@@ -8,6 +8,7 @@ import Foundation
 // MARK: - Typealiases
 
 public typealias MongoDbId = String
+public typealias VenueId = Int
 typealias FixtureStatusShort = String
 
 // MARK: - Fixture
@@ -120,7 +121,7 @@ struct FixturePeriods: Codable, Hashable {
 }
 
 struct FixtureVenue: Codable, Hashable {
-    let id: Int?
+    let id: VenueId?
     let name: String?
     let city: String?
 }
