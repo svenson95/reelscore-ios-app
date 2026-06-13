@@ -87,7 +87,7 @@ private struct MatchDetailsSection<Content: View>: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(14)
         .background {
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
+            RoundedRectangle(cornerRadius: AppLayout.cornerRadius, style: .continuous)
                 .fill(.secondary.opacity(0.12))
         }
     }
@@ -98,7 +98,7 @@ private struct MatchDetailRow: View {
     let value: String
 
     var body: some View {
-        HStack(alignment: .firstTextBaseline, spacing: 16) {
+        HStack(alignment: .firstTextBaseline, spacing: AppLayout.large) {
             Text(title)
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
@@ -110,7 +110,7 @@ private struct MatchDetailRow: View {
                 .multilineTextAlignment(.trailing)
                 .frame(maxWidth: .infinity, alignment: .trailing)
         }
-        .padding(.vertical, 10)
+        .padding(.vertical, AppLayout.medium)
     }
 }
 
@@ -124,7 +124,7 @@ private struct PlaceholderSection: View {
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.vertical, 8)
+                .padding(.vertical, AppLayout.small)
         }
     }
 }

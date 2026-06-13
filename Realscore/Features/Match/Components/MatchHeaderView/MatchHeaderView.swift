@@ -24,9 +24,9 @@ struct MatchHeaderView: View {
             .background {
                 venueBackground
             }
-            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: AppLayout.cornerRadius, style: .continuous))
             .overlay {
-                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                RoundedRectangle(cornerRadius: AppLayout.cornerRadius, style: .continuous)
                     .stroke(.primary.opacity(0.08), lineWidth: 1)
             }
             .task(id: venueId) {
@@ -75,7 +75,7 @@ struct MatchHeaderView: View {
     }
 
     private var resultColumn: some View {
-        VStack(spacing: 4) {
+        VStack(spacing: 8) {
             MatchStatusLabelView(fixture: fixture)
 
             ResultLabelView(

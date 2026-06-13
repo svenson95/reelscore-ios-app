@@ -50,9 +50,9 @@ struct OverviewDatePickerOverlay: View {
         .padding()
         .frame(maxWidth: 360)
         .background(Color(.secondarySystemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: AppLayout.cornerRadius, style: .continuous))
         .shadow(radius: 24)
-        .padding(.horizontal, 16)
+        .padding(.horizontal, AppLayout.large)
     }
 
     private var header: some View {
