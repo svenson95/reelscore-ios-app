@@ -18,8 +18,8 @@ struct MatchHeaderView: View {
     var body: some View {
         headerContent
             .frame(maxWidth: .infinity)
-            .padding(.bottom, 14)
-            .padding(.horizontal, 12)
+            .padding(.vertical, AppLayout.medium)
+            .padding(.horizontal, AppLayout.medium)
             .foregroundColor(.primary)
             .background {
                 venueBackground
@@ -90,6 +90,7 @@ struct MatchHeaderView: View {
     private func teamSection(for team: FixtureTeam) -> some View {
         VStack {
             TeamLogoView(teamId: team.id, size: 64)
+                .frame(minHeight: 64)
 
             Text(team.name.teamName())
                 .multilineTextAlignment(.center)

@@ -45,7 +45,6 @@ struct MatchDetails: View {
                 )
 
                 Divider()
-                    .padding(.leading, 120)
 
                 MatchDetailRow(
                     title: "Stadion",
@@ -53,7 +52,6 @@ struct MatchDetails: View {
                 )
 
                 Divider()
-                    .padding(.leading, 120)
 
                 MatchDetailRow(
                     title: "Stadt",
@@ -61,7 +59,6 @@ struct MatchDetails: View {
                 )
 
                 Divider()
-                    .padding(.leading, 120)
 
                 MatchDetailRow(
                     title: "Schiedsrichter",
@@ -85,7 +82,7 @@ private struct MatchDetailsSection<Content: View>: View {
             content
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(14)
+        .padding(AppLayout.medium)
         .background {
             RoundedRectangle(cornerRadius: AppLayout.cornerRadius, style: .continuous)
                 .fill(.secondary.opacity(0.12))
