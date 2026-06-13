@@ -8,50 +8,123 @@ import SwiftUI
 struct MatchDetails: View {
     let fixture: Fixture
 
+    private var round: String {
+        fixture.league.round?.roundLabel(
+            competitionId: fixture.league.id,
+            season: fixture.league.season ?? -1
+        ) ?? "-"
+    }
+
     var body: some View {
-        Group {
-            LabeledContent("Fixture ID", value: "\(fixture.id)")
-            LabeledContent("Start", value: fixture.fixture.date)
-            LabeledContent("Status", value: fixture.fixture.status.long)
-            
-            if let elapsed = fixture.fixture.status.elapsed {
-                LabeledContent("Minute", value: "\(elapsed)")
-            }
-            
-            LabeledContent("League", value: fixture.league.name.competitionName())
-            let home = fixture.teams.home.name.teamName();
-            let away = fixture.teams.away.name.teamName();
-            LabeledContent("Teams", value: home + " vs " + away)
+        VStack(spacing: 14) {
+            detailsSection
+
+            PlaceholderSection(
+                title: "Tabellen",
+                placeholder: "Tabelle ..."
+            )
+
+            PlaceholderSection(
+                title: "Aktuelle Form",
+                placeholder: "Formkurve ..."
+            )
+
+            PlaceholderSection(
+                title: "Letzte Partien",
+                placeholder: "Letzte Partien ..."
+            )
         }
-        
-        Group {
-            LabeledContent("Fixture ID", value: "\(fixture.id)")
-            LabeledContent("Start", value: fixture.fixture.date)
-            LabeledContent("Status", value: fixture.fixture.status.long)
-            
-            if let elapsed = fixture.fixture.status.elapsed {
-                LabeledContent("Minute", value: "\(elapsed)")
+    }
+
+    private var detailsSection: some View {
+        MatchDetailsSection(title: "Details") {
+            VStack(spacing: 0) {
+                MatchDetailRow(
+                    title: "Spieltag",
+                    value: round
+                )
+
+                Divider()
+                    .padding(.leading, 120)
+
+                MatchDetailRow(
+                    title: "Stadion",
+                    value: fixture.fixture.venue.name ?? "-"
+                )
+
+                Divider()
+                    .padding(.leading, 120)
+
+                MatchDetailRow(
+                    title: "Stadt",
+                    value: fixture.fixture.venue.city ?? "-"
+                )
+
+                Divider()
+                    .padding(.leading, 120)
+
+                MatchDetailRow(
+                    title: "Schiedsrichter",
+                    value: fixture.fixture.referee ?? "-"
+                )
             }
-            
-            LabeledContent("League", value: fixture.league.name.competitionName())
-            let home = fixture.teams.home.name.teamName();
-            let away = fixture.teams.away.name.teamName();
-            LabeledContent("Teams", value: home + " vs " + away)
         }
-        
-        Group {
-            LabeledContent("Fixture ID", value: "\(fixture.id)")
-            LabeledContent("Start", value: fixture.fixture.date)
-            LabeledContent("Status", value: fixture.fixture.status.long)
-            
-            if let elapsed = fixture.fixture.status.elapsed {
-                LabeledContent("Minute", value: "\(elapsed)")
-            }
-            
-            LabeledContent("League", value: fixture.league.name.competitionName())
-            let home = fixture.teams.home.name.teamName();
-            let away = fixture.teams.away.name.teamName();
-            LabeledContent("Teams", value: home + " vs " + away)
+    }
+}
+
+private struct MatchDetailsSection<Content: View>: View {
+    let title: String
+    @ViewBuilder let content: Content
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(title)
+                .font(.headline)
+                .foregroundStyle(.primary)
+
+            content
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(14)
+        .background {
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(.secondary.opacity(0.12))
+        }
+    }
+}
+
+private struct MatchDetailRow: View {
+    let title: String
+    let value: String
+
+    var body: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 16) {
+            Text(title)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .frame(width: 105, alignment: .leading)
+
+            Text(value.isEmpty ? "-" : value)
+                .font(.subheadline.weight(.medium))
+                .foregroundStyle(.primary)
+                .multilineTextAlignment(.trailing)
+                .frame(maxWidth: .infinity, alignment: .trailing)
+        }
+        .padding(.vertical, 10)
+    }
+}
+
+private struct PlaceholderSection: View {
+    let title: String
+    let placeholder: String
+
+    var body: some View {
+        MatchDetailsSection(title: title) {
+            Text(placeholder)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.vertical, 8)
         }
     }
 }

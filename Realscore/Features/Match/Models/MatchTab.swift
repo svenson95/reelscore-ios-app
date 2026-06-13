@@ -5,9 +5,9 @@
 
 enum MatchTab: String, CaseIterable {
     case details = "Details"
-    case analyses = "Analyses"
+    case analyses = "Analysen"
     case events = "Events"
-    case statistics = "Statistics"
+    case statistics = "Statistiken"
     
     var systemImage: String {
         switch self {
