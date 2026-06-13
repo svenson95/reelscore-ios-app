@@ -114,3 +114,7 @@ private extension View {
         }
     }
 }
+
+#Preview {
+    MatchView(fixture: FixtureMock.example)
+}

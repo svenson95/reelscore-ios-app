@@ -257,3 +257,102 @@ extension FixtureStatusShort {
         isCancelled || isAbandoned || isNotPlayed
     }
 }
+
+
+enum FixtureMock {
+    static let example: Fixture = decodeFixture(from: exampleJSON)
+
+    private static func decodeFixture(from json: String) -> Fixture {
+        guard let data = json.data(using: .utf8) else {
+            fatalError("Invalid fixture mock JSON")
+        }
+
+        do {
+            return try JSONDecoder().decode(Fixture.self, from: data)
+        } catch {
+            fatalError("Failed to decode fixture mock: \(error)")
+        }
+    }
+
+    private static let exampleJSON = """
+    {
+      "_id": "6a161cb1a8cabfceb9e416e4",
+      "fixture": {
+        "id": 1489373,
+        "referee": "Said Martinez, Honduras",
+        "timezone": "Europe/Berlin",
+        "date": "2026-06-13T19:00:00.000Z",
+        "timestamp": 1781377200,
+        "periods": {
+          "first": null,
+          "second": null
+        },
+        "venue": {
+          "id": null,
+          "name": "Levi's Stadium",
+          "city": "San Francisco Bay Area"
+        },
+        "status": {
+          "long": "Not Started",
+          "short": "NS",
+          "elapsed": null,
+          "extra": null
+        }
+      },
+      "league": {
+        "id": 1,
+        "name": "World Cup",
+        "country": "World",
+        "logo": "https://media.api-sports.io/football/leagues/1.png",
+        "flag": null,
+        "season": 2026,
+        "round": "Group Stage - 1"
+      },
+      "teams": {
+        "home": {
+          "id": 1569,
+          "name": "Qatar",
+          "logo": "https://media.api-sports.io/football/teams/1569.png",
+          "winner": null
+        },
+        "away": {
+          "id": 15,
+          "name": "Switzerland",
+          "logo": "https://media.api-sports.io/football/teams/15.png",
+          "winner": null
+        }
+      },
+      "goals": {
+        "home": null,
+        "away": null
+      },
+      "score": {
+        "halftime": {
+          "home": null,
+          "away": null
+        },
+        "fulltime": {
+          "home": null,
+          "away": null
+        },
+        "extratime": {
+          "home": null,
+          "away": null
+        },
+        "penalty": {
+          "home": null,
+          "away": null
+        }
+      },
+      "final": {
+        "firstLegResult": null,
+        "winnerOfFinal": null
+      },
+      "prediction": null,
+      "evaluations": null,
+      "createdAt": "2026-05-27T00:20:33.649Z",
+      "updatedAt": "2026-06-13T19:02:33.578Z",
+      "__v": 0
+    }
+    """
+}
