@@ -23,7 +23,7 @@ struct FixtureScoreBadgeView: View {
     @ViewBuilder
     private var background: some View {
         if status.isFinished {
-            RoundedRectangle(cornerRadius: FixtureRowStyle.cornerRadius)
+            RoundedRectangle(cornerRadius: AppLayout.cornerRadiusSmall)
                 .fill(FixtureRowStyle.grayBadgeColor)
         }
     }
