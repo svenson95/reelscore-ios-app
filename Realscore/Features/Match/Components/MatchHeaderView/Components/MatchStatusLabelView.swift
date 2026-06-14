@@ -65,7 +65,7 @@ struct MatchStatusLabelView: View {
                         state.status.isEnded ?
                         .secondary : .primary
                 )
-                .cornerRadius(AppLayout.cornerRadius)
+                .cornerRadius(AppLayout.cornerRadiusSmall)
         }
     }
 }

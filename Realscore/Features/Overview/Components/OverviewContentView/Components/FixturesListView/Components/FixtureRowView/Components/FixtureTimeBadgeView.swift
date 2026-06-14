@@ -37,12 +37,12 @@ struct FixtureTimeBadgeView: View {
     @ViewBuilder
     private var background: some View {
         if status.isPlaying {
-            RoundedRectangle(cornerRadius: FixtureRowStyle.cornerRadius)
+            RoundedRectangle(cornerRadius: AppLayout.cornerRadiusSmall)
                 .fill(.green)
         }
 
         if status.isScheduled {
-            RoundedRectangle(cornerRadius: FixtureRowStyle.cornerRadius)
+            RoundedRectangle(cornerRadius: AppLayout.cornerRadiusSmall)
                 .fill(FixtureRowStyle.grayBadgeColor)
         }
     }

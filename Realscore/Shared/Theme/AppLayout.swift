@@ -10,5 +10,6 @@ enum AppLayout {
     static let medium: CGFloat = 12.0
     static let large: CGFloat = 20.0
     
+    static let cornerRadiusSmall = 6.0
     static let cornerRadius = 24.0
 }
