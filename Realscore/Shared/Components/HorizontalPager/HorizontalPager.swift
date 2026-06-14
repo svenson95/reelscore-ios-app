@@ -132,19 +132,19 @@ extension View {
                 .mask {
                     GeometryReader { proxy in
                         let width = proxy.size.width
+                        let height = proxy.size.height
                         let capsuleWidth = capsuleWidth(
                             totalWidth: width,
                             itemCount: itemCount
                         )
                         let travelDistance = max(width - capsuleWidth, 0)
                         let safeProgress = safeProgress(pageProgress)
-
-                        if capsuleWidth > 0, width > 0 {
+                        let capsuleHeight = max(min(height, height), 0)
+                        if capsuleWidth > 0, width > 0, height > 0, capsuleHeight > 0 {
                             Capsule()
-                                .frame(width: capsuleWidth)
-                                .offset(
-                                    x: safeProgress * travelDistance
-                                )
+                                .frame(width: capsuleWidth, height: capsuleHeight)
+                                .position(x: (capsuleWidth / 2) + safeProgress * travelDistance,
+                                          y: height / 2)
                         }
                     }
                 }

@@ -5,10 +5,10 @@
 
 import SwiftUI
 
-enum HorizontalPagerBarLayout {
-    static let height: CGFloat = 50
-    static let horizontalPadding: CGFloat = 15
-    static let bottomPadding: CGFloat = 0
+struct HorizontalPagerBarLayout {
+    static let height: CGFloat = 36
+    static let horizontalPadding: CGFloat = 12
+    static let bottomPadding: CGFloat = AppLayout.large
 }
 
 struct HorizontalPagerBar<Item: View>: View {
@@ -100,11 +100,10 @@ struct HorizontalPagerBar<Item: View>: View {
 
     private func movingSelectionCapsule(width: CGFloat) -> some View {
         let baseCapsuleWidth = capsuleWidth(totalWidth: width)
-        let horizontalInset: CGFloat = PagerLayout.CAPSULE_INSET
-        let verticalInset: CGFloat = PagerLayout.CAPSULE_INSET
+        let horizontalInset = HorizontalPagerBarLayout.horizontalPadding
 
         let visibleCapsuleWidth = max(baseCapsuleWidth - horizontalInset, 0)
-        let visibleCapsuleHeight = max(HorizontalPagerBarLayout.height - verticalInset, 0)
+        let visibleCapsuleHeight = visibleCapsuleWidth
         let travelDistance = max(width - baseCapsuleWidth, 0)
 
         return Capsule()
@@ -115,13 +114,8 @@ struct HorizontalPagerBar<Item: View>: View {
                 x: 0,
                 y: 2
             )
-            .frame(
-                width: visibleCapsuleWidth,
-                height: visibleCapsuleHeight
-            )
-            .offset(
-                x: resolvedTabProgress * travelDistance - travelDistance / 2
-            )
+            .frame(width: visibleCapsuleWidth,height: visibleCapsuleHeight)
+            .offset(x: resolvedTabProgress * travelDistance - travelDistance / 2)
     }
 
     private func capsuleWidth(totalWidth: CGFloat) -> CGFloat {
