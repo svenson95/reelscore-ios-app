@@ -30,51 +30,19 @@ struct OverviewFixturesListView: View {
         isRetrying || isLoading
     }
 
+    private var shouldShowInlineLoading: Bool {
+        isLoading && didLoadInitialData
+    }
+
     var body: some View {
         List {
             errorSection
+            inlineLoadingSection
             emptySection
             fixtureSections
         }
         .refreshable {
             await onRefresh()
-        }
-    }
-
-    @ViewBuilder
-    private var errorSection: some View {
-        if let errorMessage {
-            ErrorView(
-                message: errorMessage,
-                isRetrying: showsRetryLoading
-            ) {
-                retry()
-            }
-        }
-    }
-
-    @MainActor
-    private func retry() {
-        guard !isRetrying else { return }
-
-        isRetrying = true
-
-        Task {
-            await onRetry()
-
-            await MainActor.run {
-                isRetrying = false
-            }
-        }
-    }
-
-    @ViewBuilder
-    private var emptySection: some View {
-        if shouldShowEmptyState {
-            EmptyStateView(
-                title: "Keine Spiele",
-                systemImage: "calendar"
-            )
         }
     }
 
@@ -95,6 +63,59 @@ struct OverviewFixturesListView: View {
                     .foregroundColor(.primary)
                     .fontWeight(.light)
                     .textCase(nil)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var errorSection: some View {
+        if let errorMessage {
+            ErrorView(
+                message: errorMessage,
+                isRetrying: showsRetryLoading
+            ) {
+                retry()
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var inlineLoadingSection: some View {
+        if shouldShowInlineLoading {
+            Section {
+                HStack {
+                    Spacer()
+                    ProgressView()
+                    Spacer()
+                }
+                .padding(.vertical, 8)
+                .listRowSeparator(.hidden)
+                .listRowBackground(Color.clear)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var emptySection: some View {
+        if shouldShowEmptyState {
+            EmptyStateView(
+                title: "Keine Spiele",
+                systemImage: "calendar"
+            )
+        }
+    }
+
+    @MainActor
+    private func retry() {
+        guard !isRetrying else { return }
+
+        isRetrying = true
+
+        Task {
+            await onRetry()
+
+            await MainActor.run {
+                isRetrying = false
             }
         }
     }

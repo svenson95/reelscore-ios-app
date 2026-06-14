@@ -6,8 +6,6 @@
 import SwiftUI
 
 struct OverviewContentView: View {
-    @State private var isRetrying = false
-
     let fixtures: [Fixture]
 
     let errorMessage: String?
@@ -17,100 +15,34 @@ struct OverviewContentView: View {
     let onRetry: () async -> Void
     let onFixtureTap: (Fixture) -> Void
 
-    private var groupedFixtures: [FixtureSectionGroup] {
-        fixtures.groupedByCompetitionAndRound()
-    }
-
     private var shouldShowLoadingState: Bool {
-        isRetrying || (isLoading && !didLoadInitialData)
-    }
-
-    private var shouldShowEmptyState: Bool {
-        fixtures.isEmpty && !shouldShowLoadingState && errorMessage == nil && didLoadInitialData
-    }
-
-    private var showsRetryLoading: Bool {
-        isRetrying
+        isLoading && !didLoadInitialData
     }
 
     var body: some View {
-        errorSection
-        loadingSection
-        emptySection
-        fixtureSections
-    }
-
-    @ViewBuilder
-    private var errorSection: some View {
-        if let errorMessage {
-            ErrorView(
-                message: errorMessage,
-                isRetrying: showsRetryLoading
-            ) {
-                retry()
-            }
-        }
-    }
-
-    @ViewBuilder
-    private var loadingSection: some View {
         if shouldShowLoadingState {
-            Section {
-                HStack {
-                    Spacer()
-                    ProgressView()
-                    Spacer()
-                }
-                .frame(minHeight: 220)
-                .listRowSeparator(.hidden)
-                .listRowBackground(Color.clear)
-            }
-        }
-    }
-
-    @ViewBuilder
-    private var emptySection: some View {
-        if shouldShowEmptyState {
-            EmptyStateView(
-                title: "Keine Spiele",
-                systemImage: "calendar"
+            loadingView
+        } else {
+            OverviewFixturesListView(
+                fixtures: fixtures,
+                errorMessage: errorMessage,
+                isLoading: isLoading,
+                didLoadInitialData: didLoadInitialData,
+                onRetry: onRetry,
+                onRefresh: onRetry,
+                onFixtureTap: onFixtureTap
             )
         }
     }
 
-    private var fixtureSections: some View {
-        ForEach(groupedFixtures) { group in
-            Section {
-                ForEach(group.fixtures) { fixture in
-                    Button {
-                        onFixtureTap(fixture)
-                    } label: {
-                        FixtureRowView(fixture: fixture)
-                            .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
-                }
-            } header: {
-                FixtureSectionHeaderView(group: group)
-                    .foregroundColor(.primary)
-                    .fontWeight(.light)
-                    .textCase(nil)
-            }
+    @ViewBuilder
+    private var loadingView: some View {
+        VStack {
+            Spacer()
+            ProgressView()
+            Spacer()
         }
-    }
-
-    @MainActor
-    private func retry() {
-        guard !isRetrying else { return }
-
-        isRetrying = true
-
-        Task {
-            await onRetry()
-
-            await MainActor.run {
-                isRetrying = false
-            }
-        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.clear)
     }
 }

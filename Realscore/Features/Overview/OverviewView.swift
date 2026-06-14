@@ -83,25 +83,18 @@ struct OverviewView: View {
     }
 
     private func overviewList(for index: Int) -> some View {
-        List {
-            OverviewContentView(
-                fixtures: viewModel.fixturesForDay(at: index),
-                errorMessage: viewModel.errorMessage,
-                isLoading: viewModel.isLoading,
-                didLoadInitialData: viewModel.didLoadInitialData,
-                onRetry: {
-                    await refreshOverview()
-                },
-                onFixtureTap: { fixture in
-                    selectedFixture = fixture
-                }
-            )
-        }
-        .scrollContentBackground(.hidden)
-        .background(Color(.systemGroupedBackground))
-        .refreshable {
-            await refreshOverview()
-        }
+        OverviewContentView(
+            fixtures: viewModel.fixturesForDay(at: index),
+            errorMessage: viewModel.errorMessage,
+            isLoading: viewModel.isLoading,
+            didLoadInitialData: viewModel.didLoadInitialData,
+            onRetry: {
+                await refreshOverview()
+            },
+            onFixtureTap: { fixture in
+                selectedFixture = fixture
+            }
+        )
     }
 
     private func refreshOverview() async {
