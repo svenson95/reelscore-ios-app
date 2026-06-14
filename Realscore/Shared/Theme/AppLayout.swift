@@ -7,8 +7,8 @@ import SwiftUI
 
 enum AppLayout {
     static let small: CGFloat = 6.0
-    static let medium: CGFloat = 10.0
-    static let large: CGFloat = 16.0
+    static let medium: CGFloat = 12.0
+    static let large: CGFloat = 20.0
     
-    static let cornerRadius = 12.0
+    static let cornerRadius = 24.0
 }

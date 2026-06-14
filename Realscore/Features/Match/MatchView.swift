@@ -25,7 +25,7 @@ struct MatchView: View {
                     headerHeight = height
                 }
                 .zIndex(1)
-                .padding(.horizontal, AppLayout.large)
+                .padding(.horizontal, AppLayout.medium)
         }
         .navigationTitle("Partie")
         .navigationBarTitleDisplayMode(.inline)
@@ -40,6 +40,7 @@ struct MatchView: View {
             tabBarItem(tab)
         } pageContent: { tab in
             pageContent(for: tab)
+                .padding(.horizontal, AppLayout.medium)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
     }
@@ -74,7 +75,6 @@ struct MatchView: View {
     private var detailsPage: some View {
         ScrollView(.vertical) {
             MatchDetails(fixture: viewModel.fixture)
-                .padding(.horizontal, AppLayout.large)
                 .padding(.vertical, AppLayout.medium)
                 .frame(maxWidth: .infinity)
         }

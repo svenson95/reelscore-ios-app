@@ -82,7 +82,7 @@ private struct MatchDetailsSection<Content: View>: View {
             content
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(AppLayout.medium)
+        .padding(AppLayout.large)
         .background {
             RoundedRectangle(cornerRadius: AppLayout.cornerRadius, style: .continuous)
                 .fill(.secondary.opacity(0.12))

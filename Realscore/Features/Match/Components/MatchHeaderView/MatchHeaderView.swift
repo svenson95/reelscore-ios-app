@@ -19,7 +19,6 @@ struct MatchHeaderView: View {
         headerContent
             .frame(maxWidth: .infinity)
             .padding(.vertical, AppLayout.medium)
-            .padding(.horizontal, AppLayout.medium)
             .foregroundColor(.primary)
             .background {
                 venueBackground
