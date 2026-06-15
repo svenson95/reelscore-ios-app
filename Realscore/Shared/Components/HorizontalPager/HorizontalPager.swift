@@ -9,12 +9,20 @@ enum PagerLayout {
     static let CAPSULE_INSET: CGFloat = 8
 }
 
-struct HorizontalPager<PageID: Hashable, Content: View>: View {
+struct HorizontalPager<PageID: Hashable, BarItem: View, Content: View>: View {
     let pageIDs: [PageID]
     let isDisabled: Bool
+    let barTopSpacing: CGFloat
+    let barBottomSpacing: CGFloat
     let onScrollProgress: (CGFloat) -> Void
+
     @Binding var selectedPage: PageID
+
     @ViewBuilder let content: (PageID) -> Content
+    private let barItem: ((PageID) -> BarItem)?
+
+    @State private var pageProgress: CGFloat = 0
+    @State private var pendingProgrammaticIndex: Int?
 
     init(
         pageIDs: [PageID],
@@ -22,12 +30,49 @@ struct HorizontalPager<PageID: Hashable, Content: View>: View {
         isDisabled: Bool = false,
         onScrollProgress: @escaping (CGFloat) -> Void = { _ in },
         @ViewBuilder content: @escaping (PageID) -> Content
+    ) where BarItem == EmptyView {
+        self.pageIDs = pageIDs
+        self._selectedPage = selectedPage
+        self.isDisabled = isDisabled
+        self.barTopSpacing = 0
+        self.barBottomSpacing = 0
+        self.onScrollProgress = onScrollProgress
+        self.content = content
+        self.barItem = nil
+    }
+
+    init(
+        pageIDs: [PageID],
+        selectedPage: Binding<PageID>,
+        isDisabled: Bool = false,
+        barTopSpacing: CGFloat = 0,
+        barBottomSpacing: CGFloat = 0,
+        onScrollProgress: @escaping (CGFloat) -> Void = { _ in },
+        @ViewBuilder barItem: @escaping (PageID) -> BarItem,
+        @ViewBuilder content: @escaping (PageID) -> Content
     ) {
         self.pageIDs = pageIDs
         self._selectedPage = selectedPage
         self.isDisabled = isDisabled
+        self.barTopSpacing = barTopSpacing
+        self.barBottomSpacing = barBottomSpacing
         self.onScrollProgress = onScrollProgress
         self.content = content
+        self.barItem = barItem
+    }
+
+    private var selectedIndex: Int {
+        pageIDs.firstIndex(of: selectedPage) ?? 0
+    }
+
+    private var normalizedProgress: CGFloat {
+        let maxProgress = CGFloat(pageIDs.count - 1)
+
+        guard maxProgress > 0 else {
+            return 0
+        }
+
+        return pageProgress / maxProgress
     }
 
     private var scrollPosition: Binding<PageID?> {
@@ -50,6 +95,23 @@ struct HorizontalPager<PageID: Hashable, Content: View>: View {
     }
 
     var body: some View {
+        pager
+            .safeAreaInset(edge: .top, spacing: barBottomSpacing) {
+                pagerBar
+                    .padding(.top, barTopSpacing)
+            }
+            .onAppear {
+                syncProgressWithSelection(animated: false)
+            }
+            .onChange(of: selectedPage) { _, _ in
+                syncProgressWithSelection(animated: true)
+            }
+            .onChange(of: pageIDs) { _, _ in
+                syncProgressWithSelection(animated: false)
+            }
+    }
+
+    private var pager: some View {
         GeometryReader { proxy in
             ScrollView(.horizontal) {
                 LazyHStack(spacing: 0) {
@@ -74,8 +136,38 @@ struct HorizontalPager<PageID: Hashable, Content: View>: View {
         }
     }
 
+    @ViewBuilder
+    private var pagerBar: some View {
+        if let barItem, !pageIDs.isEmpty {
+            HorizontalPagerBar(
+                itemCount: pageIDs.count,
+                selectedIndex: selectedIndex,
+                tabProgress: normalizedProgress,
+                onSelectIndex: selectIndex
+            ) { index in
+                barItem(pageIDs[index])
+            }
+        }
+    }
+
+    private func selectIndex(_ index: Int) {
+        guard pageIDs.indices.contains(index) else { return }
+
+        let pageID = pageIDs[index]
+
+        guard selectedPage != pageID else { return }
+
+        pendingProgrammaticIndex = index
+
+        withAnimation(.snappy) {
+            selectedPage = pageID
+            pageProgress = CGFloat(index)
+        }
+    }
+
     private func updateProgress(offset: CGFloat, pageWidth: CGFloat) {
         guard pageIDs.count > 1 else {
+            pageProgress = 0
             onScrollProgress(0)
             return
         }
@@ -85,11 +177,58 @@ struct HorizontalPager<PageID: Hashable, Content: View>: View {
         let currentOffset = -offset
         guard currentOffset >= 0 else { return }
 
-        let pageProgress = currentOffset / pageWidth
-        let maxPageProgress = CGFloat(pageIDs.count - 1)
-        let clampedPageProgress = min(max(pageProgress, 0), maxPageProgress)
+        let rawProgress = currentOffset / pageWidth
+        let maxProgress = CGFloat(pageIDs.count - 1)
+        let progress = min(max(rawProgress, 0), maxProgress)
 
-        onScrollProgress(clampedPageProgress)
+        handleInternalProgress(progress)
+        onScrollProgress(progress)
+    }
+
+    private func handleInternalProgress(_ progress: CGFloat) {
+        if let pendingProgrammaticIndex {
+            let targetProgress = CGFloat(pendingProgrammaticIndex)
+            let distanceToTarget = abs(progress - targetProgress)
+
+            guard distanceToTarget < 0.05 else {
+                return
+            }
+
+            self.pendingProgrammaticIndex = nil
+            pageProgress = targetProgress
+            return
+        }
+
+        pageProgress = progress
+    }
+
+    private func syncProgressWithSelection(animated: Bool) {
+        guard let index = pageIDs.firstIndex(of: selectedPage) else {
+            pageProgress = 0
+            pendingProgrammaticIndex = nil
+            return
+        }
+
+        let targetProgress = CGFloat(index)
+
+        guard pageProgress != targetProgress else {
+            return
+        }
+
+        pendingProgrammaticIndex = index
+
+        if animated {
+            withAnimation(.snappy) {
+                pageProgress = targetProgress
+            }
+        } else {
+            var transaction = Transaction()
+            transaction.disablesAnimations = true
+
+            withTransaction(transaction) {
+                pageProgress = targetProgress
+            }
+        }
     }
 }
 
@@ -108,7 +247,7 @@ extension View {
             .overlay {
                 GeometryReader { proxy in
                     let minX = proxy.frame(in: .scrollView(axis: .horizontal)).minX
-                    
+
                     Color.clear
                         .preference(key: OffsetKey.self, value: minX)
                         .onPreferenceChange(OffsetKey.self, perform: completion)
@@ -133,40 +272,26 @@ extension View {
                     GeometryReader { proxy in
                         let width = proxy.size.width
                         let height = proxy.size.height
-                        let capsuleWidth = capsuleWidth(
+                        let metrics = PagerCapsuleMetrics(
                             totalWidth: width,
-                            itemCount: itemCount
+                            totalHeight: height,
+                            itemCount: itemCount,
+                            progress: pageProgress
                         )
-                        let travelDistance = max(width - capsuleWidth, 0)
-                        let safeProgress = safeProgress(pageProgress)
-                        let capsuleHeight = max(min(height, height), 0)
-                        if capsuleWidth > 0, width > 0, height > 0, capsuleHeight > 0 {
+
+                        if metrics.isValid {
                             Capsule()
-                                .frame(width: capsuleWidth, height: capsuleHeight)
-                                .position(x: (capsuleWidth / 2) + safeProgress * travelDistance,
-                                          y: height / 2)
+                                .frame(
+                                    width: metrics.capsuleWidth,
+                                    height: metrics.capsuleHeight
+                                )
+                                .position(
+                                    x: metrics.centerX,
+                                    y: metrics.centerY
+                                )
                         }
                     }
                 }
         }
-    }
-
-    private func capsuleWidth(
-        totalWidth: CGFloat,
-        itemCount: Int
-    ) -> CGFloat {
-        guard itemCount > 0 else { return 0 }
-        guard totalWidth.isFinite, totalWidth > 0 else { return 0 }
-
-        let itemWidth = totalWidth / CGFloat(itemCount)
-        let capsuleWidth = itemWidth - PagerLayout.CAPSULE_INSET
-
-        return max(capsuleWidth, 0)
-    }
-
-    private func safeProgress(_ progress: CGFloat) -> CGFloat {
-        guard progress.isFinite else { return 0 }
-
-        return min(max(progress, 0), 1)
     }
 }

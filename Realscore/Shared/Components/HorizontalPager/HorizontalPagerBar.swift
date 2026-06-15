@@ -6,9 +6,8 @@
 import SwiftUI
 
 struct HorizontalPagerBarLayout {
-    static let height: CGFloat = 36
-    static let horizontalPadding: CGFloat = 12
-    static let bottomPadding: CGFloat = AppLayout.large
+    static let height: CGFloat = 50
+    static let horizontalPadding: CGFloat = AppLayout.medium
 }
 
 struct HorizontalPagerBar<Item: View>: View {
@@ -16,6 +15,7 @@ struct HorizontalPagerBar<Item: View>: View {
     let selectedIndex: Int
     let tabProgress: CGFloat?
     let onSelectIndex: (Int) -> Void
+
     @ViewBuilder let item: (Int) -> Item
 
     @Environment(\.colorScheme) private var scheme
@@ -35,7 +35,7 @@ struct HorizontalPagerBar<Item: View>: View {
     }
 
     private var resolvedTabProgress: CGFloat {
-        if let tabProgress {
+        if let tabProgress, tabProgress.isFinite {
             return tabProgress
         }
 
@@ -53,21 +53,25 @@ struct HorizontalPagerBar<Item: View>: View {
         GlassEffectContainer {
             if itemCount > 0 {
                 GeometryReader { proxy in
-                    content(width: proxy.size.width)
+                    content(
+                        width: proxy.size.width,
+                        height: proxy.size.height
+                    )
                 }
                 .frame(height: HorizontalPagerBarLayout.height)
                 .padding(.horizontal, HorizontalPagerBarLayout.horizontalPadding)
-                .padding(.bottom, HorizontalPagerBarLayout.bottomPadding)
             }
         }
     }
 
-    private func content(width: CGFloat) -> some View {
+    private func content(
+        width: CGFloat,
+        height: CGFloat
+    ) -> some View {
         HStack(spacing: 0) {
             ForEach(0..<itemCount, id: \.self) { index in
                 item(index)
-                    .frame(maxWidth: .infinity, minHeight: 30)
-                    .padding(.vertical, 10)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .contentShape(.capsule)
                     .onTapGesture {
                         onSelectIndex(index)
@@ -79,7 +83,10 @@ struct HorizontalPagerBar<Item: View>: View {
             itemCount: itemCount
         )
         .background {
-            movingSelectionCapsule(width: width)
+            movingSelectionCapsule(
+                width: width,
+                height: height
+            )
         }
         .background(backgroundColor, in: .capsule)
         .clipShape(Capsule())
@@ -98,29 +105,36 @@ struct HorizontalPagerBar<Item: View>: View {
         : Color.gray.opacity(0.1)
     }
 
-    private func movingSelectionCapsule(width: CGFloat) -> some View {
-        let baseCapsuleWidth = capsuleWidth(totalWidth: width)
-        let horizontalInset = HorizontalPagerBarLayout.horizontalPadding
+    private func movingSelectionCapsule(
+        width: CGFloat,
+        height: CGFloat
+    ) -> some View {
+        let metrics = PagerCapsuleMetrics(
+            totalWidth: width,
+            totalHeight: height,
+            itemCount: itemCount,
+            progress: resolvedTabProgress
+        )
 
-        let visibleCapsuleWidth = max(baseCapsuleWidth - horizontalInset, 0)
-        let visibleCapsuleHeight = visibleCapsuleWidth
-        let travelDistance = max(width - baseCapsuleWidth, 0)
-
-        return Capsule()
-            .fill(selectionCapsuleColor)
-            .shadow(
-                color: .black.opacity(scheme == .dark ? 0.18 : 0.06),
-                radius: 6,
-                x: 0,
-                y: 2
-            )
-            .frame(width: visibleCapsuleWidth,height: visibleCapsuleHeight)
-            .offset(x: resolvedTabProgress * travelDistance - travelDistance / 2)
-    }
-
-    private func capsuleWidth(totalWidth: CGFloat) -> CGFloat {
-        guard itemCount > 0 else { return 0 }
-
-        return totalWidth / CGFloat(itemCount)
+        return ZStack {
+            if metrics.isValid {
+                Capsule()
+                    .fill(selectionCapsuleColor)
+                    .shadow(
+                        color: .black.opacity(scheme == .dark ? 0.18 : 0.06),
+                        radius: 6,
+                        x: 0,
+                        y: 2
+                    )
+                    .frame(
+                        width: metrics.capsuleWidth,
+                        height: metrics.capsuleHeight
+                    )
+                    .position(
+                        x: metrics.centerX,
+                        y: metrics.centerY
+                    )
+            }
+        }
     }
 }

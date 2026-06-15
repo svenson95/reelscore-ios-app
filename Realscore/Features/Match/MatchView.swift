@@ -32,15 +32,16 @@ struct MatchView: View {
     }
 
     private var content: some View {
-        HorizontalPagerWithBar(
+        HorizontalPager(
             pageIDs: MatchTab.allCases,
             selectedPage: $selectedTab,
             barTopSpacing: headerHeight + AppLayout.medium
         ) { tab in
             tabBarItem(tab)
-        } pageContent: { tab in
+        } content: { tab in
             pageContent(for: tab)
                 .padding(.horizontal, AppLayout.medium)
+                .padding(.top, AppLayout.medium)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
     }
@@ -75,7 +76,6 @@ struct MatchView: View {
     private var detailsPage: some View {
         ScrollView(.vertical) {
             MatchDetails(fixture: viewModel.fixture)
-                .padding(.vertical, AppLayout.medium)
                 .frame(maxWidth: .infinity)
         }
         .scrollContentBackground(.hidden)
