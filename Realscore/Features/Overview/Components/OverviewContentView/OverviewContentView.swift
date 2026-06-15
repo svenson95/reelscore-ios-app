@@ -13,6 +13,7 @@ struct OverviewContentView: View {
     let didLoadInitialData: Bool
 
     let onRetry: () async -> Void
+    let onRefresh: () async -> Void
     let onFixtureTap: (Fixture) -> Void
 
     private var shouldShowLoadingState: Bool {
@@ -29,7 +30,7 @@ struct OverviewContentView: View {
                 isLoading: isLoading,
                 didLoadInitialData: didLoadInitialData,
                 onRetry: onRetry,
-                onRefresh: onRetry,
+                onRefresh: onRefresh,
                 onFixtureTap: onFixtureTap
             )
         }

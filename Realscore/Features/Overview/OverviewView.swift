@@ -101,6 +101,9 @@ struct OverviewView: View {
             onRetry: {
                 await refreshOverview()
             },
+            onRefresh: {
+                await refreshOverview()
+            },
             onFixtureTap: { fixture in
                 selectedFixture = fixture
             }

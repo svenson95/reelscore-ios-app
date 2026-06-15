@@ -6,7 +6,7 @@
 import SwiftUI
 
 struct OverviewFixturesListView: View {
-    @State private var isRetrying = false
+    @State private var isRefreshing = false
 
     let fixtures: [Fixture]
 
@@ -22,16 +22,20 @@ struct OverviewFixturesListView: View {
         fixtures.groupedByCompetitionAndRound()
     }
 
+    private var isBusy: Bool {
+        isLoading || isRefreshing
+    }
+
     private var shouldShowEmptyState: Bool {
-        fixtures.isEmpty && !isLoading && !isRetrying && didLoadInitialData
+        fixtures.isEmpty && !isBusy && didLoadInitialData
     }
 
     private var showsRetryLoading: Bool {
-        isRetrying || (isLoading && fixtures.isEmpty)
+        isBusy && fixtures.isEmpty
     }
 
     private var shouldShowInlineLoading: Bool {
-        isLoading && didLoadInitialData && fixtures.isEmpty
+        isBusy && didLoadInitialData && fixtures.isEmpty
     }
 
     var body: some View {
@@ -42,7 +46,7 @@ struct OverviewFixturesListView: View {
             fixtureSections
         }
         .refreshable {
-            await onRefresh()
+            await refresh()
         }
     }
 
@@ -107,16 +111,25 @@ struct OverviewFixturesListView: View {
 
     @MainActor
     private func retry() {
-        guard !isRetrying else { return }
+        guard !isRefreshing else { return }
 
-        isRetrying = true
+        isRefreshing = true
 
         Task {
             await onRetry()
 
             await MainActor.run {
-                isRetrying = false
+                isRefreshing = false
             }
         }
+    }
+
+    @MainActor
+    private func refresh() async {
+        guard !isRefreshing else { return }
+
+        isRefreshing = true
+        await onRefresh()
+        isRefreshing = false
     }
 }
