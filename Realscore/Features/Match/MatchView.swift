@@ -41,7 +41,7 @@ struct MatchView: View {
         } content: { tab in
             pageContent(for: tab)
                 .padding(.horizontal, AppLayout.medium)
-                .padding(.top, AppLayout.medium)
+                .padding(.vertical, AppLayout.medium)
                 .background(Color(uiColor: .systemGroupedBackground))
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
