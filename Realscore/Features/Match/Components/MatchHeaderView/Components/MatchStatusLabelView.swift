@@ -43,29 +43,21 @@ struct MatchStatusLabelView: View {
         return ""
     }
 
-    private var isPlayingStyle: Bool {
-        state.isPenalty || state.isHalftime || state.isPlaying
+    private var isPlaying: Bool {
+        state.isPlaying || state.isHalftime
     }
 
     var body: some View {
         if !label.isEmpty {
             Text(label)
-                .font(.caption2.weight(isPlayingStyle ? .semibold : .regular))
+                .font(.caption2.weight(isPlaying ? .semibold : .regular))
                 .padding(.horizontal, 8)
                 .padding(.vertical, 3)
                 .background {
-                    if isPlayingStyle {
-                        Color.green
-                    } else {
-                        Color(.systemBackground)
-                    }
+                    RoundedRectangle(cornerRadius: AppLayout.cornerRadiusSmall)
+                        .fill(AppColors.timeBackground(status: state.status))
                 }
-                .foregroundStyle(
-                    isPlayingStyle ? Color(.systemBackground) :
-                        state.status.isEnded ?
-                        .secondary : .primary
-                )
-                .cornerRadius(AppLayout.cornerRadiusSmall)
+                .foregroundStyle(AppColors.timeText(status: state.status))
         }
     }
 }
