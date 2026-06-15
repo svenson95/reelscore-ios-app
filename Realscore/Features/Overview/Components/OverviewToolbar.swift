@@ -18,6 +18,7 @@ struct OverviewToolbar: ToolbarContent {
             } label: {
                 Text(dateText)
                     .font(.subheadline.weight(.semibold))
+                    .monospacedDigit()
             }
         }
 
