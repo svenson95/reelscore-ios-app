@@ -12,6 +12,8 @@ struct OverviewDatePickerOverlay: View {
     let onDismiss: () -> Void
 
     @State private var draftDate: Date
+    
+    @Environment(\.colorScheme) private var colorScheme
 
     init(
         selectedDate: Binding<Date>,
@@ -29,30 +31,43 @@ struct OverviewDatePickerOverlay: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Color.clear)
     }
-
+    
     private var pickerCard: some View {
         VStack(spacing: 12) {
             header
 
+            datePickerContainer
+                .frame(height: 330)
+
+            footer
+        }
+        .padding()
+        .frame(width: 360, height: 440, alignment: .top)
+        .background(cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: AppLayout.cornerRadius, style: .continuous))
+        .shadow(radius: 24)
+        .padding(.horizontal, AppLayout.large)
+        .transaction { transaction in
+            transaction.animation = nil
+        }
+    }
+
+    private var datePickerContainer: some View {
+        ZStack(alignment: .top) {
             DatePicker(
                 "Datum auswählen",
                 selection: $draftDate,
-                in: dateRange,
+                in: Self.dateRange,
                 displayedComponents: .date
             )
             .datePickerStyle(.graphical)
             .labelsHidden()
             .environment(\.locale, .appLocale)
             .environment(\.calendar, .appCalendar)
-
-            footer
+            .frame(width: 328, height: 330, alignment: .top)
         }
-        .padding()
-        .frame(maxWidth: 360)
-        .background(Color(.secondarySystemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: AppLayout.cornerRadius, style: .continuous))
-        .shadow(radius: 24)
-        .padding(.horizontal, AppLayout.large)
+        .frame(width: 328, height: 330, alignment: .top)
+        .clipped()
     }
 
     private var header: some View {
@@ -93,7 +108,7 @@ struct OverviewDatePickerOverlay: View {
         }
     }
     
-    private var dateRange: ClosedRange<Date> {
+    private static let dateRange: ClosedRange<Date> = {
         let calendar = Calendar.appCalendar
 
         let startParts = Constants.DATA_START_DATE.split(separator: "-").compactMap { Int($0) }
@@ -111,5 +126,11 @@ struct OverviewDatePickerOverlay: View {
         ))!
 
         return minDate...maxDate
+    }()
+    
+    private var cardBackground: Color {
+        colorScheme == .dark
+            ? Color(uiColor: .secondarySystemBackground)
+            : Color(uiColor: .secondarySystemGroupedBackground)
     }
 }
