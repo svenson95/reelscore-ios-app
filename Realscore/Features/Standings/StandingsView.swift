@@ -25,32 +25,7 @@ struct StandingsView: View {
                     description: Text("Es wurden keine Tabellen gefunden.")
                 )
             } else {
-                List {
-                    ForEach(viewModel.standings) { standingsDTO in
-                        Section {
-                            StandingsHeaderView()
-
-                            ForEach(flattenedRows(from: standingsDTO)) { row in
-                                StandingsRowView(standing: row)
-                            }
-                        } header: {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(standingsDTO.league.name.competitionName())
-                                    .font(.headline)
-
-                                if let round = standingsDTO.league.round {
-                                    let label = round.roundLabel(
-                                        competitionId: standingsDTO.league.id,
-                                        season: standingsDTO.league.season
-                                    )
-                                    Text(label)
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
-                                }
-                            }
-                        }
-                    }
-                }
+                standingsList
             }
         }
         .navigationTitle("Tabellen")
@@ -59,7 +34,24 @@ struct StandingsView: View {
         }
     }
 
+    private var standingsList: some View {
+        List {
+            ForEach(viewModel.standings) { standingsDTO in
+                Section {
+                    StandingsTableView(
+                        standings: flattenedRows(from: standingsDTO),
+                        competition: standingsDTO.league
+                    )
+                }
+            }
+        }
+    }
+
     private func flattenedRows(from standingsDTO: StandingsDTO) -> [StandingRanks] {
         standingsDTO.league.standings.flatMap { $0 }
     }
+}
+
+#Preview {
+    StandingsView()
 }
