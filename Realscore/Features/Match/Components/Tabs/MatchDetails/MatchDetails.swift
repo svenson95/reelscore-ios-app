@@ -73,6 +73,14 @@ private struct MatchDetailsSection<Content: View>: View {
     let title: String
     @ViewBuilder let content: Content
 
+    @Environment(\.colorScheme) private var colorScheme
+
+    private var sectionBackground: Color {
+        colorScheme == .dark
+            ? Color(uiColor: .secondarySystemBackground)
+            : Color(uiColor: .secondarySystemGroupedBackground)
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(title)
@@ -84,7 +92,7 @@ private struct MatchDetailsSection<Content: View>: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(AppLayout.large)
         .background(
-            Color(.systemBackground),
+            sectionBackground,
             in: RoundedRectangle(
                 cornerRadius: AppLayout.cornerRadius,
                 style: .continuous
