@@ -17,9 +17,19 @@ struct OverviewView: View {
         selectionStore.dayBinding(viewModel: viewModel)
     }
 
+    private var selectedFixtures: [Fixture] {
+        viewModel.fixturesForDay(at: selectedDayBinding.wrappedValue)
+    }
+
+    private var shouldShowInitialLoadingState: Bool {
+        viewModel.isLoading
+            && !viewModel.didLoadInitialData
+            && selectedFixtures.isEmpty
+    }
+
     var body: some View {
         Group {
-            if viewModel.isLoading && !viewModel.didLoadInitialData {
+            if shouldShowInitialLoadingState {
                 ProgressView()
             } else {
                 overviewPager

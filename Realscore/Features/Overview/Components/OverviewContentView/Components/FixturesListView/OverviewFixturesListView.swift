@@ -27,11 +27,11 @@ struct OverviewFixturesListView: View {
     }
 
     private var showsRetryLoading: Bool {
-        isRetrying || isLoading
+        isRetrying || (isLoading && fixtures.isEmpty)
     }
 
     private var shouldShowInlineLoading: Bool {
-        isLoading && didLoadInitialData
+        isLoading && didLoadInitialData && fixtures.isEmpty
     }
 
     var body: some View {

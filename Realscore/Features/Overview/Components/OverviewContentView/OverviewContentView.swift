@@ -16,7 +16,7 @@ struct OverviewContentView: View {
     let onFixtureTap: (Fixture) -> Void
 
     private var shouldShowLoadingState: Bool {
-        isLoading && !didLoadInitialData
+        isLoading && !didLoadInitialData && fixtures.isEmpty
     }
 
     var body: some View {
