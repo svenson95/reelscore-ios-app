@@ -20,7 +20,7 @@ enum FixtureRowTextProvider {
         let home = fixture.goals.home.map(String.init) ?? "?"
         let away = fixture.goals.away.map(String.init) ?? "?"
 
-        return "\(home):\(away)"
+        return "\(home)\u{2009}:\u{2009}\(away)"
     }
 
     static func time(for fixture: Fixture) -> String {

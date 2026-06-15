@@ -14,7 +14,7 @@ struct FixtureScoreBadgeView: View {
             .font(.subheadline)
             .fontWeight(status.isPlaying ? .bold : .regular)
             .monospacedDigit()
-            .frame(minWidth: 28)
+            .frame(minWidth: 32)
             .padding(.horizontal, AppLayout.badgePaddingHorizontal)
             .padding(.vertical, AppLayout.badgePaddingVertical)
             .background(background)
