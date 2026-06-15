@@ -12,4 +12,7 @@ enum AppLayout {
     
     static let cornerRadiusSmall = 6.0
     static let cornerRadius = 24.0
+    
+    static let badgePaddingHorizontal: CGFloat = 4
+    static let badgePaddingVertical: CGFloat = 4
 }

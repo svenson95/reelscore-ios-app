@@ -11,17 +11,15 @@ struct FixtureTimeBadgeView: View {
 
     var body: some View {
         Text(text)
+            .frame(width: 42, alignment: .center)
+            .padding(.horizontal, AppLayout.badgePaddingHorizontal)
+            .padding(.vertical, AppLayout.badgePaddingVertical)
+            .background(AppColors.badgeBackground(status: status))
+            .cornerRadius(AppLayout.cornerRadiusSmall)
             .font(.caption)
             .fontWeight(status.isPlaying ? .semibold : .regular)
-            .foregroundStyle(AppColors.timeText(status: status))
-            .background {
-                RoundedRectangle(cornerRadius: AppLayout.cornerRadiusSmall)
-                    .fill(AppColors.timeBackground(status: status))
-            }
+            .foregroundStyle(AppColors.badgeText(status: status))
             .strikethrough(status.isEnded)
             .monospacedDigit()
-            .frame(width: 42, alignment: .center)
-            .padding(.horizontal, FixtureRowStyle.badgePaddingHorizontal)
-            .padding(.vertical, FixtureRowStyle.badgePaddingVertical)
     }
 }

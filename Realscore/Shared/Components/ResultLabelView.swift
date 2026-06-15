@@ -25,17 +25,19 @@ struct ResultLabelView: View {
                     .font(.caption)
 
                 Text("\(penaltyResult.home.formattedGoal):\(penaltyResult.away.formattedGoal)")
+                    .monospacedDigit()
             }
         } else {
             HStack(spacing: 4) {
                 Text(mainResult.home.formattedGoal)
+                    .monospacedDigit()
 
-                if !separatorText.isEmpty {
-                    Text(separatorText)
-                }
+                Text(separatorText)
 
                 Text(mainResult.away.formattedGoal)
+                    .monospacedDigit()
             }
+            .monospacedDigit()
         }
     }
 
@@ -56,7 +58,7 @@ struct ResultLabelView: View {
     }
 
     private var isPenaltyShootout: Bool {
-        status.short == "P"
+        status.short == "PEN"
     }
 
     private var isNotPlayed: Bool {

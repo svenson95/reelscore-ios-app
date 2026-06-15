@@ -15,8 +15,8 @@ struct FixtureScoreBadgeView: View {
             .fontWeight(status.isPlaying ? .bold : .regular)
             .monospacedDigit()
             .frame(minWidth: 28)
-            .padding(.horizontal, FixtureRowStyle.badgePaddingHorizontal)
-            .padding(.vertical, FixtureRowStyle.badgePaddingVertical)
+            .padding(.horizontal, AppLayout.badgePaddingHorizontal)
+            .padding(.vertical, AppLayout.badgePaddingVertical)
             .background(background)
     }
 
@@ -24,7 +24,7 @@ struct FixtureScoreBadgeView: View {
     private var background: some View {
         if status.isFinished {
             RoundedRectangle(cornerRadius: AppLayout.cornerRadiusSmall)
-                .fill(FixtureRowStyle.grayBadgeColor)
+                .fill(AppColors.gray)
         }
     }
 }

@@ -17,10 +17,6 @@ struct MatchStatusLabelView: View {
             return "Abgesagt"
         }
 
-        if state.isPenalty {
-            return "Elfmeterschießen"
-        }
-
         if state.isHalftime {
             return "HZ"
         }
@@ -50,14 +46,13 @@ struct MatchStatusLabelView: View {
     var body: some View {
         if !label.isEmpty {
             Text(label)
+                .frame(minWidth: 42, alignment: .center)
+                .padding(.horizontal, AppLayout.badgePaddingHorizontal)
+                .padding(.vertical, AppLayout.badgePaddingVertical)
+                .background(AppColors.badgeBackground(status: state.status, isMatchPage: true))
+                .cornerRadius(AppLayout.cornerRadiusSmall)
                 .font(.caption2.weight(isPlaying ? .semibold : .regular))
-                .padding(.horizontal, 8)
-                .padding(.vertical, 3)
-                .background {
-                    RoundedRectangle(cornerRadius: AppLayout.cornerRadiusSmall)
-                        .fill(AppColors.timeBackground(status: state.status))
-                }
-                .foregroundStyle(AppColors.timeText(status: state.status))
+                .foregroundStyle(AppColors.badgeText(status: state.status))
         }
     }
 }
