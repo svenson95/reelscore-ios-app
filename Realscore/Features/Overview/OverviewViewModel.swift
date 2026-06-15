@@ -41,7 +41,7 @@ final class OverviewViewModel: ObservableObject {
     func loadOverviewIfNeeded() async {
         guard !didLoad else { return }
 
-        let didSucceed = await loadLocked(date: Date())
+        let didSucceed = await loadData(date: Date())
         if didSucceed {
             didLoad = true
         }
@@ -49,17 +49,17 @@ final class OverviewViewModel: ObservableObject {
 
     @discardableResult
     func refreshVisibleWeek() async -> Bool {
-        await loadLocked(date: visibleWeekStart)
+        await loadData(date: visibleWeekStart)
     }
 
     @discardableResult
     func loadCurrentWeek() async -> Bool {
-        await loadLocked(date: Date())
+        await loadData(date: Date())
     }
 
     @discardableResult
     func loadWeek(containing date: Date) async -> Bool {
-        await loadLocked(date: date)
+        await loadData(date: date)
     }
 
     func fixturesForDay(at index: Int) -> [Fixture] {
@@ -87,7 +87,7 @@ final class OverviewViewModel: ObservableObject {
     }
 
     @discardableResult
-    private func loadLocked(date: Date) async -> Bool {
+    private func loadData(date: Date) async -> Bool {
         guard !isBusy else {
             return false
         }
