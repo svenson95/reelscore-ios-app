@@ -19,10 +19,7 @@ struct MatchDetails: View {
         VStack(spacing: 14) {
             detailsSection
 
-            PlaceholderSection(
-                title: "Tabellen",
-                placeholder: "Tabelle ..."
-            )
+            standingsSection
 
             PlaceholderSection(
                 title: "Aktuelle Form",
@@ -63,6 +60,21 @@ struct MatchDetails: View {
                 MatchDetailRow(
                     title: "Schiedsrichter",
                     value: fixture.fixture.referee ?? "-"
+                )
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var standingsSection: some View {
+        if !SeasonHelper.isCompetitionWithoutStandings(
+            competitionId: fixture.league.id
+        ) && !SeasonHelper.isKoPhase(round: fixture.league.round ?? "") {
+            if let date = Date(isoString: fixture.fixture.date)?.apiDateString {
+                MatchStandingsView(
+                    date: date,
+                    compId: fixture.league.id,
+                    teamIds: "\(fixture.teams.home.id),\(fixture.teams.away.id)"
                 )
             }
         }
