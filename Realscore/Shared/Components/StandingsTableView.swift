@@ -82,7 +82,7 @@ private struct StandingsRowView: View {
 
     private var teamView: some View {
         HStack(spacing: AppLayout.small) {
-            TeamLogoView(teamId: standing.team.id, size: 16)
+            TeamLogoView(teamId: standing.team.id, size: .small)
 
             Text(standing.team.name.teamName(TeamNameOption.short))
                 .lineLimit(1)

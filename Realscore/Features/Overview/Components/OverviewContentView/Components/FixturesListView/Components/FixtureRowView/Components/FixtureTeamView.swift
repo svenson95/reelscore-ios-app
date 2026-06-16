@@ -24,7 +24,7 @@ struct FixtureTeamView: View {
     }
 
     private var logo: some View {
-        TeamLogoView(teamId: teamId, size: 16)
+        TeamLogoView(teamId: teamId, size: .small)
     }
 
     private func teamName(alignment: Alignment) -> some View {

@@ -88,8 +88,8 @@ struct MatchHeaderView: View {
 
     private func teamSection(for team: FixtureTeam) -> some View {
         VStack {
-            TeamLogoView(teamId: team.id, size: 64)
-                .frame(minHeight: 64)
+            TeamLogoView(teamId: team.id, size: .large)
+                .frame(minHeight: TeamLogoSize.large.cgFloat)
 
             Text(team.name.teamName())
                 .multilineTextAlignment(.center)
