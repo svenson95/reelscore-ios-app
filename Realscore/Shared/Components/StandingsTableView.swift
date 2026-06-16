@@ -11,21 +11,30 @@ enum TableConstants {
     static let HSTACK_SPACING = 4.0
 }
 
+enum StandingsTableKind {
+    case all
+    case home
+    case away
+}
+
 struct StandingsTableView: View {
     let standings: [StandingRanks]
     let competition: StandingsLeague
     let titleOverride: String?
+    let tableKind: StandingsTableKind
 
     private let rowVerticalPadding = 10.0
 
     init(
         standings: [StandingRanks],
         competition: StandingsLeague,
-        titleOverride: String? = nil
+        titleOverride: String? = nil,
+        tableKind: StandingsTableKind = .all
     ) {
         self.standings = standings
         self.competition = competition
         self.titleOverride = titleOverride
+        self.tableKind = tableKind
     }
 
     var body: some View {
@@ -40,9 +49,12 @@ struct StandingsTableView: View {
             ForEach(standings) { standing in
                 Divider()
 
-                StandingsRowView(standing: standing)
-                    .padding(.vertical, rowVerticalPadding)
-                    .padding(.horizontal, AppLayout.small)
+                StandingsRowView(
+                    standing: standing,
+                    tableKind: tableKind
+                )
+                .padding(.vertical, rowVerticalPadding)
+                .padding(.horizontal, AppLayout.small)
             }
         }
     }
@@ -50,22 +62,38 @@ struct StandingsTableView: View {
 
 private struct StandingsRowView: View {
     let standing: StandingRanks
+    let tableKind: StandingsTableKind
 
     private let rankColumnWidth = TableConstants.RANK_COL_WIDTH
     private let numberColumnWidth = TableConstants.NUMBER_ROW_WIDTH
     private let spacing = TableConstants.HSTACK_SPACING
+
+    private var stats: StandingsPlayed {
+        switch tableKind {
+        case .all:
+            standing.all
+        case .home:
+            standing.home
+        case .away:
+            standing.away
+        }
+    }
+
+    private var tableKindPoints: Int {
+        stats.win * 3 + stats.draw
+    }
 
     var body: some View {
         HStack(spacing: spacing) {
             rankView
             teamView
 
-            numberText(standing.all.played)
-            numberText(standing.all.win)
-            numberText(standing.all.draw)
-            numberText(standing.all.lose)
+            numberText(stats.played)
+            numberText(stats.win)
+            numberText(stats.draw)
+            numberText(stats.lose)
 
-            Text("\(standing.points)")
+            Text("\(tableKindPoints)")
                 .fontWeight(.semibold)
                 .frame(width: numberColumnWidth, alignment: .center)
                 .monospacedDigit()

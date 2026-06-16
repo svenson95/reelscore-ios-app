@@ -7,8 +7,10 @@ import SwiftUI
 
 private struct StandingSection: Identifiable {
     let id: Int
-    let standingsDTO: StandingsDTO
+    let competition: StandingsLeague
     let ranks: [StandingRanks]
+    let title: String?
+    let tableKind: StandingsTableKind
 }
 
 struct MatchStandingsView: View {
@@ -21,6 +23,15 @@ struct MatchStandingsView: View {
     @State private var standingsDTO: StandingsDTO?
     @State private var isLoading = false
     @State private var errorMessage: String?
+
+    private var teamIdSet: Set<String> {
+        Set(
+            teamIds
+                .split(separator: ",")
+                .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+                .filter { !$0.isEmpty }
+        )
+    }
 
     var body: some View {
         content
@@ -61,30 +72,15 @@ struct MatchStandingsView: View {
 
         return standingsDTO.league.standings
             .enumerated()
-            .compactMap { index, ranks in
-                let filteredRanks = ranks.filter { rank in
-                    teamIdSet.contains(String(rank.team.id))
-                }
-
-                guard !filteredRanks.isEmpty else {
-                    return nil
-                }
-
-                return StandingSection(
+            .compactMap { index, ranks -> StandingSection in
+                StandingSection(
                     id: index,
-                    standingsDTO: standingsDTO,
-                    ranks: filteredRanks
+                    competition: standingsDTO.league,
+                    ranks: ranks,
+                    title: standingsTitle(index),
+                    tableKind: tableKind(index)
                 )
             }
-    }
-
-    private var teamIdSet: Set<String> {
-        Set(
-            teamIds
-                .split(separator: ",")
-                .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-                .filter { !$0.isEmpty }
-        )
     }
 
     @MainActor
@@ -112,6 +108,28 @@ struct MatchStandingsView: View {
 
         isLoading = false
     }
+
+    private func tableKind(_ index: Int) -> StandingsTableKind {
+        switch index {
+        case 1:
+            return .home
+        case 2:
+            return .away
+        default:
+            return .all
+        }
+    }
+
+    private func standingsTitle(_ index: Int) -> String? {
+        switch index {
+        case 1:
+            return "Heimtabelle"
+        case 2:
+            return "Auswärtstabelle"
+        default:
+            return nil
+        }
+    }
 }
 
 private struct MatchStandingSectionView: View {
@@ -123,8 +141,9 @@ private struct MatchStandingSectionView: View {
         Section {
             StandingsTableView(
                 standings: section.ranks,
-                competition: section.standingsDTO.league,
-                titleOverride: title
+                competition: section.competition,
+                titleOverride: section.title,
+                tableKind: section.tableKind
             )
         }
         .padding(AppLayout.medium)
@@ -136,15 +155,5 @@ private struct MatchStandingSectionView: View {
         colorScheme == .dark
             ? Color(uiColor: .secondarySystemBackground)
             : Color(uiColor: .secondarySystemGroupedBackground)
-    }
-
-    private var title: String? {
-        if section.id == 1 {
-            return "Heimtabelle"
-        }
-        if section.id == 2 {
-            return "Auswärtstabelle"
-        }
-        return nil
     }
 }
