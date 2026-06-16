@@ -80,7 +80,7 @@ private struct StandingsRowView: View {
     }
 
     private var tableKindPoints: Int {
-        stats.win * 3 + stats.draw
+        (stats.win ?? 0) * 3 + (stats.draw ?? 0)
     }
 
     var body: some View {
@@ -88,10 +88,10 @@ private struct StandingsRowView: View {
             rankView
             teamView
 
-            numberText(stats.played)
-            numberText(stats.win)
-            numberText(stats.draw)
-            numberText(stats.lose)
+            numberText(stats.played ?? 0)
+            numberText(stats.win ?? 0)
+            numberText(stats.draw ?? 0)
+            numberText(stats.lose ?? 0)
 
             Text("\(tableKindPoints)")
                 .fontWeight(.semibold)

@@ -70,11 +70,11 @@ public struct StandingRanks: Codable, Equatable, Identifiable {
 // MARK: - Played Stats
 
 public struct StandingsPlayed: Codable, Equatable {
-    public let played: Int
-    public let win: Int
-    public let draw: Int
-    public let lose: Int
-    public let goals: StandingGoals
+    public let played: Int?
+    public let win: Int?
+    public let draw: Int?
+    public let lose: Int?
+    public let goals: StandingGoals?
 }
 
 public struct StandingGoals: Codable, Equatable {
