@@ -34,7 +34,7 @@ struct MatchHeaderView: View {
     }
 
     private var headerContent: some View {
-        HStack(spacing: 6) {
+        HStack(alignment: .top, spacing: 6) {
             Spacer()
 
             teamSection(for: fixture.teams.home)
@@ -87,13 +87,19 @@ struct MatchHeaderView: View {
     }
 
     private func teamSection(for team: FixtureTeam) -> some View {
-        VStack {
+        VStack(spacing: 6) {
             TeamLogoView(teamId: team.id, size: .large)
-                .frame(minHeight: TeamLogoSize.large.cgFloat)
+                .frame(
+                    width: TeamLogoSize.large.cgFloat,
+                    height: TeamLogoSize.large.cgFloat
+                )
 
             Text(team.name.teamName())
                 .multilineTextAlignment(.center)
+                .lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity, alignment: .top)
         }
-        .frame(maxWidth: .infinity)
+        .frame(maxWidth: .infinity, alignment: .top)
     }
 }
