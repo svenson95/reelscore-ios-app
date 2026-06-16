@@ -7,7 +7,7 @@ import SwiftUI
 
 struct FixtureTeamView: View {
     let name: String
-    let teamId: Int?
+    let teamId: Int
     let side: FixtureTeamSide
 
     var body: some View {
